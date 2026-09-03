@@ -8,11 +8,11 @@ Saltline Dispatch is an original GTA VI-inspired late-night coastal editorial mi
 
 ## The 3 to 5 minute loop
 
-1. **Briefing:** learn the one objective: turn one late-night case into a published city dispatch.
-2. **Pick a case:** choose Wake Tax, Room 08, or After the Rain.
+1. **First-shift briefing:** choose whether you follow people or objects, then learn the three-part field loop and receive a recommended first call.
+2. **Pick a case:** choose from five original late-night calls: Wake Tax, Room 08, After the Rain, Undertow, or Off the Meter.
 3. **Angle Lock and edit evidence:** choose one of two editorial leads for the case, then crop, filter, annotate, frame, and otherwise shape the original field image with React Image Editor. The lead changes the brief, printed caption, and outcome.
 4. **Publish:** use the editor's own **Save** control. The result is the image returned by the editor, not a mockup or a separate upload.
-5. **Archive:** the saved image and its locked lead become the collectible dispatch in the session archive. It can also be downloaded as PNG.
+5. **Closing frame and archive:** the saved image gets an original halftone editorial closing frame before entering the collectible session archive. It can also be downloaded as PNG.
 
 The editor is indispensable: there is no publish bypass. Removing it removes the visitor-authored dispatch and the central choose/edit/save/reveal loop.
 
@@ -53,7 +53,7 @@ All assignment artwork and interface marks are original to this project. See [as
 - The complete source needed to run the project is public.
 - The React Image Editor implementation is visible in [app/page.tsx](app/page.tsx).
 - The field art is served from `public/images` so the editing canvas has same-origin inputs.
-- The project deliberately has only three assignments and the five-screen flow. There is no account system, backend, analytics, external API, or generated-story dependency.
+- The project deliberately has five assignments and the five-screen flow. Its optional first-shift briefing and closing frame stay inside that structure. There is no account system, backend, analytics, external API, or generated-story dependency.
 
 ## Challenge links
 

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import ImageEditor from '@unlayer/react-image-editor';
 
 type Screen = 'desk' | 'calls' | 'edit' | 'reveal' | 'archive';
+type Instinct = 'person' | 'object';
 
 type Angle = {
   id: string;
@@ -92,6 +93,40 @@ const ASSIGNMENTS: Assignment[] = [
       { id: 'follow-courier', label: 'Follow the courier', prompt: 'Follow the courier through the reflection. Keep the mask as a warning, not the headline.', outcome: 'The courier crossed the service bridge at dawn. The carnival kept its mask, but the route was now on the record.', stamp: 'COURIER FOLLOWED' },
     ],
   },
+  {
+    id: 'undertow',
+    issue: 'ISSUE 04',
+    call: 'CALL 04',
+    time: '02:34',
+    place: 'Vesper Quay',
+    title: 'Undertow',
+    deck: 'A phone went into the tide behind a closed quay kiosk. Somebody stayed to watch it sink. Somebody else took the tender home.',
+    prompt: 'Find the hand-off. Let the tide erase nothing.',
+    outcome: 'At high tide the phone was gone, but the wet sleeve made the morning print. The tender owner stopped returning calls at 08:01.',
+    image: '/images/undertow.png',
+    accent: 'teal',
+    angles: [
+      { id: 'print-handoff', label: 'Print the hand-off', prompt: 'Frame the phone and wet sleeve. Make the exchange impossible to deny.', outcome: 'At high tide the phone was gone, but the wet sleeve made the morning print. The tender owner stopped returning calls at 08:01.', stamp: 'HAND-OFF PRINTED' },
+      { id: 'follow-tender', label: 'Follow the tender', prompt: 'Let the phone fall away. Hold the watcher and the tender in the same story.', outcome: 'The tender left before dawn. Its wake cut straight past the quay cameras, but your plate preserved the one person who watched it go.', stamp: 'TENDER FOLLOWED' },
+    ],
+  },
+  {
+    id: 'off-the-meter',
+    issue: 'ISSUE 04',
+    call: 'CALL 05',
+    time: '02:41',
+    place: 'Northbelt Causeway',
+    title: 'Off the Meter',
+    deck: 'A shuttle meter kept ticking on an empty causeway. A coral ribbon flapped inside. Its driver was already walking toward the ferry.',
+    prompt: 'Read the meter. Catch the route before it disappears.',
+    outcome: 'The ferry crossed without the driver. At first light, the shuttle appeared two districts away with the same ribbon and a different fare.',
+    image: '/images/off-the-meter.png',
+    accent: 'coral',
+    angles: [
+      { id: 'tag-driver', label: 'Tag the driver', prompt: 'Hold the driver against the ferry lights. Make the exit the whole story.', outcome: 'The ferry crossed without the driver. At first light, the shuttle appeared two districts away with the same ribbon and a different fare.', stamp: 'DRIVER TAGGED' },
+      { id: 'map-route', label: 'Map the route', prompt: 'Keep the empty shuttle and the meter together. Let the route expose itself.', outcome: 'The meter kept running until noon. Its impossible fare drew a line through three districts and one sealed marina gate.', stamp: 'ROUTE MAPPED' },
+    ],
+  },
 ];
 
 const EDITOR_OPTIONS = {
@@ -133,6 +168,10 @@ export default function Home() {
   const [screen, setScreen] = useState<Screen>('desk');
   const [selectedId, setSelectedId] = useState(ASSIGNMENTS[0].id);
   const [selectedAngleId, setSelectedAngleId] = useState(ASSIGNMENTS[0].angles[0].id);
+  const [briefingStep, setBriefingStep] = useState<'instinct' | 'loop'>('instinct');
+  const [instinct, setInstinct] = useState<Instinct | null>(null);
+  const [isBriefingOpen, setIsBriefingOpen] = useState(true);
+  const [isClosingFrameOpen, setIsClosingFrameOpen] = useState(false);
   const [dispatches, setDispatches] = useState<Dispatch[]>([]);
   const [activeDispatchId, setActiveDispatchId] = useState<string | null>(null);
   const [editorStatus, setEditorStatus] = useState('Loading the field plate…');
@@ -158,6 +197,11 @@ export default function Home() {
     [selected, selectedAngleId],
   );
 
+  const recommendedAssignment = useMemo(
+    () => ASSIGNMENTS.find((assignment) => assignment.id === (instinct === 'person' ? 'room-08' : 'after-rain')) ?? ASSIGNMENTS[0],
+    [instinct],
+  );
+
   const activeAssignment = useMemo(() => {
     const assignmentId = activeDispatch?.assignmentId ?? selected.id;
     return ASSIGNMENTS.find((assignment) => assignment.id === assignmentId) ?? selected;
@@ -170,6 +214,16 @@ export default function Home() {
     setEditorFailed(false);
     setEditorStatus('Loading the field plate…');
     setScreen('edit');
+  }
+
+  function openRecommendedAssignment() {
+    setIsBriefingOpen(false);
+    beginAssignment(recommendedAssignment.id);
+  }
+
+  function browseFieldCalls() {
+    setIsBriefingOpen(false);
+    setScreen('calls');
   }
 
   function retryEditor() {
@@ -262,7 +316,7 @@ export default function Home() {
             </div>
             <div className="desk-actions">
               <button className="ink-button" onClick={() => setScreen('calls')}>Start tonight&apos;s run <span>→</span></button>
-              <span className="edition-note">3 cases<br />1 saved dispatch</span>
+              <span className="edition-note">5 cases<br />1 saved dispatch</span>
             </div>
           </div>
           <div className="desk-plate" aria-hidden="true">
@@ -280,10 +334,10 @@ export default function Home() {
         <section className="calls-screen screen" aria-labelledby="calls-title">
           <div className="calls-heading">
             <div>
-              <p className="eyebrow">Step 02 / one case per run</p>
+              <p className="eyebrow">Step 02 / five field calls</p>
               <h1 id="calls-title">Choose the story<br />the city wants buried.</h1>
             </div>
-            <p>Each case starts with one original field plate. You will shape it in the editor, save it, and see that exact image become a published city dispatch.</p>
+            <p>Five original field plates. One goes through the editor, into print, and onto the city wall. Replay any call to tell a different version.</p>
           </div>
           <div className="call-list">
             {ASSIGNMENTS.map((assignment, index) => (
@@ -371,7 +425,7 @@ export default function Home() {
             </div>
             <p className="reveal-proof">This is the exact flattened image returned by React Image Editor. Pin it to the wall, or keep the plate.</p>
             <div className="reveal-actions">
-              <button className="ink-button" onClick={() => setScreen('archive')}>Pin to issue wall <span>→</span></button>
+              <button className="ink-button" onClick={() => { setScreen('archive'); setIsClosingFrameOpen(true); }}>Pin to issue wall <span>→</span></button>
               <button className="text-button" onClick={downloadDispatch}>Download plate ↓</button>
             </div>
           </div>
@@ -421,6 +475,50 @@ export default function Home() {
               <button className="text-button" onClick={() => setScreen('calls')}>Open field calls →</button>
             </div>
           )}
+        </section>
+      )}
+
+      {isBriefingOpen && screen === 'desk' && (
+        <section className="briefing-overlay" role="dialog" aria-modal="true" aria-labelledby="briefing-title">
+          <div className="briefing-sheet">
+            <div className="briefing-topline"><span>ISSUE 04 / FIRST SHIFT</span><span>{briefingStep === 'instinct' ? '01 / 02' : '02 / 02'}</span></div>
+            {briefingStep === 'instinct' ? (
+              <>
+                <p className="eyebrow">The city gives you five calls. Start with an instinct.</p>
+                <h2 id="briefing-title">What do you<br /><em>follow first?</em></h2>
+                <div className="instinct-options" aria-label="Choose your first desk instinct">
+                  <button className={instinct === 'person' ? 'is-selected' : ''} onClick={() => setInstinct('person')} aria-pressed={instinct === 'person'}><b>01</b><span><strong>Chase a person</strong>A balcony light, a missing driver, a witness who wants to vanish.</span></button>
+                  <button className={instinct === 'object' ? 'is-selected' : ''} onClick={() => setInstinct('object')} aria-pressed={instinct === 'object'}><b>02</b><span><strong>Follow an object</strong>A mask, a phone, a ribbon. Things lie slower than people.</span></button>
+                </div>
+                <button className="ink-button briefing-next" disabled={!instinct} onClick={() => setBriefingStep('loop')}>Set the desk instinct <span>→</span></button>
+              </>
+            ) : (
+              <>
+                <p className="eyebrow">Your first call is ready. The loop has one rule.</p>
+                <h2 id="briefing-title">Print what the<br /><em>city will not.</em></h2>
+                <ol className="briefing-loop">
+                  <li><b>01</b><span><strong>Pick one of five calls</strong>There is no perfect case, only the one you put on the record.</span></li>
+                  <li><b>02</b><span><strong>Lock the lead</strong>Your choice changes the brief, the outcome, and the issue stamp.</span></li>
+                  <li><b>03</b><span><strong>Work the field plate</strong>Use the React Image Editor to make that lead visible before you save.</span></li>
+                </ol>
+                <p className="briefing-recommendation">YOUR FIRST LEAD / <b>{recommendedAssignment.title.toUpperCase()}</b></p>
+                <div className="briefing-actions"><button className="ink-button" onClick={openRecommendedAssignment}>Open {recommendedAssignment.title} <span>→</span></button><button className="text-button" onClick={browseFieldCalls}>Browse all five calls</button></div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
+
+      {isClosingFrameOpen && screen === 'archive' && activeDispatch && (
+        <section className="closing-overlay" role="dialog" aria-modal="true" aria-labelledby="closing-title">
+          <article className="closing-sheet">
+            <div className="closing-masthead"><span>ISSUE 04 / CLOSING FRAME</span><span>{activeDispatch.angleStamp}</span></div>
+            <div className="closing-panels">
+              <figure className="closing-image"><img src={activeDispatch.image} alt={`Saved closing frame for ${activeAssignment.title}`} /><figcaption>{activeAssignment.place} / {activeDispatch.createdAt}</figcaption></figure>
+              <div className="closing-copy"><p className="eyebrow">The print is dry. The city is not.</p><h2 id="closing-title">First light finds<br /><em>the same lies.</em></h2><p>Your saved plate is now one of the stories Cala Verda has to wake up with.</p><div className="closing-sound">TIDE / TRAFFIC / PAPER</div></div>
+            </div>
+            <div className="closing-footer"><span>NOT A HERO. A WITNESS WITH A PRINT RUN.</span><button className="ink-button" onClick={() => setIsClosingFrameOpen(false)}>File the night <span>→</span></button></div>
+          </article>
         </section>
       )}
     </main>
