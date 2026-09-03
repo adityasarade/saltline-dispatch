@@ -10,11 +10,11 @@ Saltline Dispatch is an original GTA VI-inspired late-night coastal editorial mi
 
 1. **Briefing:** learn the one objective: turn one late-night case into a published city dispatch.
 2. **Pick a case:** choose Wake Tax, Room 08, or After the Rain.
-3. **Edit evidence:** crop, filter, annotate, frame, and otherwise shape the original field image with React Image Editor.
+3. **Angle Lock and edit evidence:** choose one of two editorial leads for the case, then crop, filter, annotate, frame, and otherwise shape the original field image with React Image Editor. The lead changes the brief, printed caption, and outcome.
 4. **Publish:** use the editor's own **Save** control. The result is the image returned by the editor, not a mockup or a separate upload.
-5. **Archive:** the saved image becomes the collectible dispatch in the session archive. It can also be downloaded as PNG.
+5. **Archive:** the saved image and its locked lead become the collectible dispatch in the session archive. It can also be downloaded as PNG.
 
-The editor is indispensable: there is no publish bypass. Removing it removes the visitor-authored dispatch and the central before/edit/save/reveal loop.
+The editor is indispensable: there is no publish bypass. Removing it removes the visitor-authored dispatch and the central choose/edit/save/reveal loop.
 
 ## Original GTA VI-inspired direction
 

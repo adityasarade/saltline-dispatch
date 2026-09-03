@@ -6,6 +6,14 @@ import ImageEditor from '@unlayer/react-image-editor';
 
 type Screen = 'desk' | 'calls' | 'edit' | 'reveal' | 'archive';
 
+type Angle = {
+  id: string;
+  label: string;
+  prompt: string;
+  outcome: string;
+  stamp: string;
+};
+
 type Assignment = {
   id: string;
   issue: string;
@@ -18,6 +26,7 @@ type Assignment = {
   outcome: string;
   image: string;
   accent: 'coral' | 'teal' | 'gold';
+  angles: Angle[];
 };
 
 type Dispatch = {
@@ -26,6 +35,9 @@ type Dispatch = {
   image: string;
   issue: string;
   createdAt: string;
+  angleLabel: string;
+  angleOutcome: string;
+  angleStamp: string;
 };
 
 const ASSIGNMENTS: Assignment[] = [
@@ -41,6 +53,10 @@ const ASSIGNMENTS: Assignment[] = [
     outcome: 'The ferry master clipped your plate to the manifest before sunrise. Two hours later, the boat was moored under a borrowed name.',
     image: '/images/wake-tax.png',
     accent: 'coral',
+    angles: [
+      { id: 'expose-launch', label: 'Expose the launch', prompt: 'Center the pleasure launch. Let the ferry lane tell on it.', outcome: 'The ferry master clipped your plate to the manifest before sunrise. Two hours later, the boat was moored under a borrowed name.', stamp: 'LAUNCH EXPOSED' },
+      { id: 'protect-crew', label: 'Protect the ferry crew', prompt: 'Keep the ferry in frame. Make the boat club carry the blame.', outcome: 'The crew made the first crossing untouched. By breakfast, the boat club had sent three lawyers and one silent apology.', stamp: 'CREW PROTECTED' },
+    ],
   },
   {
     id: 'room-08',
@@ -54,6 +70,10 @@ const ASSIGNMENTS: Assignment[] = [
     outcome: 'By breakfast the manager had changed the key cards. The person behind the door left a damp matchbook on the desk with no room number.',
     image: '/images/room-08.png',
     accent: 'teal',
+    angles: [
+      { id: 'show-witness', label: 'Show the witness', prompt: 'Hold the balcony. Let the witness stay visible through the noise.', outcome: 'By breakfast the manager had changed the key cards. The person behind the door left a damp matchbook on the desk with no room number.', stamp: 'WITNESS SHOWN' },
+      { id: 'hide-witness', label: 'Hide the witness', prompt: 'Cut the balcony loose. Put the reflection, not the person, on the record.', outcome: 'The coupe disappeared before dawn. The pool reflection remained, sharp enough for the night desk and nobody else.', stamp: 'WITNESS HELD' },
+    ],
   },
   {
     id: 'after-rain',
@@ -67,6 +87,10 @@ const ASSIGNMENTS: Assignment[] = [
     outcome: 'The mask made the morning edition, then vanished from the evidence bag. A brass ticket appeared where it had been, stamped for a ride that has not existed in twelve years.',
     image: '/images/after-rain-daybreak.png',
     accent: 'gold',
+    angles: [
+      { id: 'publish-mask', label: 'Publish the mask', prompt: 'Find the mask. Let the morning city see what the carnival denied.', outcome: 'The mask made the morning edition, then vanished from the evidence bag. A brass ticket appeared where it had been, stamped for a ride that has not existed in twelve years.', stamp: 'MASK PUBLISHED' },
+      { id: 'follow-courier', label: 'Follow the courier', prompt: 'Follow the courier through the reflection. Keep the mask as a warning, not the headline.', outcome: 'The courier crossed the service bridge at dawn. The carnival kept its mask, but the route was now on the record.', stamp: 'COURIER FOLLOWED' },
+    ],
   },
 ];
 
@@ -108,6 +132,7 @@ function formatTime() {
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('desk');
   const [selectedId, setSelectedId] = useState(ASSIGNMENTS[0].id);
+  const [selectedAngleId, setSelectedAngleId] = useState(ASSIGNMENTS[0].angles[0].id);
   const [dispatches, setDispatches] = useState<Dispatch[]>([]);
   const [activeDispatchId, setActiveDispatchId] = useState<string | null>(null);
   const [editorStatus, setEditorStatus] = useState('Loading the field plate…');
@@ -128,13 +153,20 @@ export default function Home() {
     [activeDispatchId, dispatches],
   );
 
+  const selectedAngle = useMemo(
+    () => selected.angles.find((angle) => angle.id === selectedAngleId) ?? selected.angles[0],
+    [selected, selectedAngleId],
+  );
+
   const activeAssignment = useMemo(() => {
     const assignmentId = activeDispatch?.assignmentId ?? selected.id;
     return ASSIGNMENTS.find((assignment) => assignment.id === assignmentId) ?? selected;
   }, [activeDispatch, selected]);
 
   function beginAssignment(id: string) {
+    const assignment = ASSIGNMENTS.find((item) => item.id === id) ?? ASSIGNMENTS[0];
     setSelectedId(id);
+    setSelectedAngleId(assignment.angles[0].id);
     setEditorFailed(false);
     setEditorStatus('Loading the field plate…');
     setScreen('edit');
@@ -155,6 +187,9 @@ export default function Home() {
       image,
       issue: `${selected.issue}.${String(dispatches.length + 1).padStart(2, '0')}`,
       createdAt: formatTime(),
+      angleLabel: selectedAngle.label,
+      angleOutcome: selectedAngle.outcome,
+      angleStamp: selectedAngle.stamp,
     };
 
     setDispatches((current) => [dispatch, ...current]);
@@ -221,8 +256,8 @@ export default function Home() {
               <span className="run-card-label">Tonight&apos;s run</span>
               <ol>
                 <li><b>01</b><span>Pick one late-night case.</span></li>
-                <li><b>02</b><span>Use the editor to frame and mark the evidence.</span></li>
-                <li><b>03</b><span>Save it. Your exact export hits the issue wall.</span></li>
+                <li><b>02</b><span>Lock a story angle, then frame and mark the evidence.</span></li>
+                <li><b>03</b><span>Save it. Your exact export and angle hit the issue wall.</span></li>
               </ol>
             </div>
             <div className="desk-actions">
@@ -231,11 +266,10 @@ export default function Home() {
             </div>
           </div>
           <div className="desk-plate" aria-hidden="true">
-            <div className="plate-moon" />
-            <div className="plate-horizon"><i /><i /><i /><i /><i /><i /><i /></div>
-            <div className="plate-water" />
+            <img className="desk-hero-image" src="/images/cala-verda-hero.png" alt="" />
+            <div className="hero-ink-wash" />
             <div className="plate-strip plate-strip-one">THE WATER REMEMBERS</div>
-            <div className="plate-strip plate-strip-two">NO. 04 / KEEP MOVING</div>
+            <div className="plate-strip plate-strip-two">CALA VERDA / 02:13</div>
             <div className="plate-stamp">S<br />L</div>
           </div>
           <p className="desk-footer">Not a hero. A witness with an editor, a deadline, and one chance to make the city talk.</p>
@@ -280,11 +314,11 @@ export default function Home() {
             <p className="eyebrow">Step 03 / {selected.call} / {selected.time}</p>
             <h1 id="edit-title">{selected.title}</h1>
             <p className="edit-place">{selected.place}</p>
-            <p className="edit-prompt">“{selected.prompt}”</p>
+            <p className="edit-prompt">“{selectedAngle.prompt}”</p>
             <ol className="editor-moves">
-              <li><b>01</b><span><strong>Frame the proof</strong>Crop toward the thing that matters.</span></li>
-              <li><b>02</b><span><strong>Make one mark</strong>Add a line, word, shape, or imperfect signal.</span></li>
-              <li><b>03</b><span><strong>Save to publish</strong>Use any editor tool to make a mark, then Save (✓) at top right. Its exact export enters tonight&apos;s issue.</span></li>
+              <li><b>01</b><span className="move-copy"><strong>Frame the proof</strong>Crop toward the thing that matters.</span></li>
+              <li className="angle-lock"><b>02</b><div className="move-copy"><strong>Lock the lead</strong><div className="angle-options" aria-label="Choose the dispatch lead">{selected.angles.map((angle) => <button key={angle.id} type="button" className={angle.id === selectedAngle.id ? 'is-selected' : ''} onClick={() => setSelectedAngleId(angle.id)} aria-pressed={angle.id === selectedAngle.id}>{angle.label}</button>)}</div><small>This changes the brief, printed lead, and outcome.</small></div></li>
+              <li><b>03</b><span className="move-copy"><strong>Save to publish</strong>Make the lead visible with a line, word, shape, or imperfect signal, then Save (✓) at top right.</span></li>
             </ol>
             <p className="editor-status" role="status">{editorStatus}</p>
             {editorFailed && <button className="retry-button" onClick={retryEditor}>Retry editor →</button>}
@@ -329,7 +363,8 @@ export default function Home() {
           <div className="reveal-aside">
             <p className="eyebrow">Step 04 / published at {activeDispatch.createdAt}</p>
             <h1 id="reveal-title">Your edit is<br /><em>on the record.</em></h1>
-            <p>{activeAssignment.outcome}</p>
+            <p>{activeDispatch.angleOutcome}</p>
+            <p className="reveal-angle">ANGLE LOCKED / {activeDispatch.angleLabel}</p>
             <div className="source-plate">
               <img src={activeAssignment.image} alt={`Original field plate for ${activeAssignment.title}`} />
               <span><b>Original field plate</b>Your saved edit is the dispatch beside it.</span>
@@ -343,8 +378,8 @@ export default function Home() {
           <article className={`printed-dispatch accent-${activeAssignment.accent}`}>
             <div className="dispatch-masthead"><span>SALTLINE / NIGHT EDITION</span><b>{activeDispatch.issue}</b></div>
             <div className="dispatch-image"><img src={activeDispatch.image} alt={`Edited dispatch for ${activeAssignment.title}`} /></div>
-            <div className="dispatch-caption"><span>{activeAssignment.place}</span><span>THE FIELD DESK DID NOT ALTER THE FACTS. ONLY THE LIGHT.</span></div>
-            <div className="dispatch-stamp">PRINTED<br />{activeDispatch.createdAt}</div>
+            <div className="dispatch-caption"><span>{activeAssignment.place}</span><span>{activeDispatch.angleStamp}. THE FIELD DESK DID NOT ALTER THE FACTS. ONLY THE LIGHT.</span></div>
+            <div className="dispatch-stamp">{activeDispatch.angleStamp}<br />{activeDispatch.createdAt}</div>
           </article>
         </section>
       )}
@@ -374,7 +409,7 @@ export default function Home() {
                   >
                     <img src={dispatch.image} alt={`Open saved ${assignment.title} dispatch`} />
                     <span>{dispatch.issue} / {assignment.title}</span>
-                    <i>{dispatch.createdAt}</i>
+                    <i>{dispatch.angleStamp} / {dispatch.createdAt}</i>
                   </button>
                 );
               })}
