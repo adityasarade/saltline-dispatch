@@ -1,0 +1,17 @@
+# Saltline asset provenance
+
+Saltline uses an original fictional setting, fictional assignments, and original product copy. It does not use Rockstar, GTA, Take-Two, One Piece, other anime-franchise, real-brand, or trailer assets.
+
+| Asset | Origin | License / use basis | Notes |
+| --- | --- | --- | --- |
+| `public/images/wake-tax.png` | Created for Saltline with OpenAI Image Generation on 3 September 2026 | Team-created production asset | Original Bellwether Pier, vessel, worker, and city setting. Prompt excludes trademarks, franchise characters, logos, and text. |
+| `public/images/room-08.png` | Created for Saltline with OpenAI Image Generation on 3 September 2026 | Team-created production asset | Original Morrow Court setting and anonymous characters. Prompt excludes franchises, logos, and text. |
+| `public/images/after-rain.png` | Created for Saltline with OpenAI Image Generation on 3 September 2026 | Team-created production asset | Original Cormorant Carnival setting, worker, and mask. Prompt excludes franchises, logos, and text. |
+| `public/og.png` | Created for Saltline with OpenAI Image Generation on 3 September 2026 | Team-created production asset | Original social preview built around the Saltline wordmark and fictional coastal pier. Prompt excludes franchises, logos, and text. |
+| `public/saltline-dispatch.gif` | Captured from the local Saltline prototype on 3 September 2026 | Team-created product demonstration | Five original interface states: desk, field calls, editor, printed dispatch, and issue wall. |
+| UI textures and marks | Authored in `app/globals.css` | Team-created source | CSS grain, shapes, typography treatment, and wordmark are original code. |
+| Unlayer React Image Editor | `@unlayer/react-image-editor` 1.0.2 | MIT licensed dependency | See the repository license and upstream notice. The application uses the package normally rather than copying its source. |
+
+## Contest note
+
+Unlayer's FAQ asks participants to use self-created assets or assets for which they have rights or permission, and warns against leaked or unauthorized GTA VI material. Saltline therefore uses the competition theme only as an inspiration for an original open-world coastal micro-experience. See the repository README for the full contest disclaimer.
