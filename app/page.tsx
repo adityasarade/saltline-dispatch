@@ -1,14 +1,15 @@
+/* eslint-disable @next/next/no-img-element -- editor exports are user-specific data URLs and must remain unoptimized. */
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ImageEditor from '@unlayer/react-image-editor';
-import type { ImageEditorRef } from '@unlayer/react-image-editor';
 
 type Screen = 'desk' | 'calls' | 'edit' | 'reveal' | 'archive';
 
 type Assignment = {
   id: string;
   issue: string;
+  call: string;
   time: string;
   place: string;
   title: string;
@@ -30,11 +31,12 @@ type Dispatch = {
 const ASSIGNMENTS: Assignment[] = [
   {
     id: 'wake-tax',
-    issue: 'SALT/04',
+    issue: 'ISSUE 04',
+    call: 'CALL 01',
     time: '02:13',
     place: 'Bellwether Pier',
     title: 'Wake Tax',
-    deck: 'A pleasure boat cuts the ferry lane and leaves the pier counting cups, teeth, and excuses.',
+    deck: 'Nacre Bay Boat Club says its pleasure launch never cut the ferry lane. The whole pier watched it sprint past the toll buoy.',
     prompt: 'Keep the ferry. Lose the alibi. Make the water look guilty.',
     outcome: 'The ferry master clipped your plate to the manifest before sunrise. Two hours later, the boat was moored under a borrowed name.',
     image: '/images/wake-tax.png',
@@ -42,11 +44,12 @@ const ASSIGNMENTS: Assignment[] = [
   },
   {
     id: 'room-08',
-    issue: 'SALT/05',
+    issue: 'ISSUE 04',
+    call: 'CALL 02',
     time: '02:19',
     place: 'Morrow Court',
     title: 'Room 08',
-    deck: 'The balcony light went out exactly once. The pool kept the rest of the story.',
+    deck: 'A white coupe waited outside Paradise Slabs Motor Court. The balcony light blinked once. The pool kept the rest of the story.',
     prompt: 'Hold the witness. Cut the noise. Leave one question open.',
     outcome: 'By breakfast the manager had changed the key cards. The person behind the door left a damp matchbook on the desk with no room number.',
     image: '/images/room-08.png',
@@ -54,14 +57,15 @@ const ASSIGNMENTS: Assignment[] = [
   },
   {
     id: 'after-rain',
-    issue: 'SALT/06',
+    issue: 'ISSUE 04',
+    call: 'CALL 03',
     time: '02:27',
     place: 'Cormorant Carnival',
     title: 'After the Rain',
-    deck: 'Floodwater returns a silver mask that everyone swears was never reported missing.',
+    deck: 'Floodwater returns a silver mask that the Cala Cielo Carnival claims was never missing. Every witness has a different story.',
     prompt: 'Find the object. Follow the reflection. Do not clean it up.',
     outcome: 'The mask made the morning edition, then vanished from the evidence bag. A brass ticket appeared where it had been, stamped for a ride that has not existed in twelve years.',
-    image: '/images/after-rain.png',
+    image: '/images/after-rain-daybreak.png',
     accent: 'gold',
   },
 ];
@@ -86,11 +90,11 @@ const EDITOR_OPTIONS = {
 };
 
 const steps: Array<{ id: Screen; label: string; number: string }> = [
-  { id: 'desk', label: 'Night desk', number: '01' },
-  { id: 'calls', label: 'Field calls', number: '02' },
-  { id: 'edit', label: 'Hot plate', number: '03' },
-  { id: 'reveal', label: 'Press run', number: '04' },
-  { id: 'archive', label: 'Issue wall', number: '05' },
+  { id: 'desk', label: 'Briefing', number: '01' },
+  { id: 'calls', label: 'Pick a case', number: '02' },
+  { id: 'edit', label: 'Edit evidence', number: '03' },
+  { id: 'reveal', label: 'Publish', number: '04' },
+  { id: 'archive', label: 'Archive', number: '05' },
 ];
 
 function formatTime() {
@@ -102,12 +106,17 @@ function formatTime() {
 }
 
 export default function Home() {
-  const editorRef = useRef<ImageEditorRef>(null);
   const [screen, setScreen] = useState<Screen>('desk');
   const [selectedId, setSelectedId] = useState(ASSIGNMENTS[0].id);
   const [dispatches, setDispatches] = useState<Dispatch[]>([]);
   const [activeDispatchId, setActiveDispatchId] = useState<string | null>(null);
   const [editorStatus, setEditorStatus] = useState('Loading the field plate…');
+  const [editorAttempt, setEditorAttempt] = useState(0);
+  const [editorFailed, setEditorFailed] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [screen]);
 
   const selected = useMemo(
     () => ASSIGNMENTS.find((assignment) => assignment.id === selectedId) ?? ASSIGNMENTS[0],
@@ -124,26 +133,26 @@ export default function Home() {
     return ASSIGNMENTS.find((assignment) => assignment.id === assignmentId) ?? selected;
   }, [activeDispatch, selected]);
 
-  function chooseAssignment(id: string) {
+  function beginAssignment(id: string) {
     setSelectedId(id);
-  }
-
-  function openHotPlate() {
+    setEditorFailed(false);
     setEditorStatus('Loading the field plate…');
     setScreen('edit');
   }
 
-  function printDispatch(image?: string) {
-    const printedImage = image ?? editorRef.current?.editor?.getImage();
-    if (!printedImage) {
-      setEditorStatus('The plate is still warming up. Give it a moment.');
-      return;
-    }
+  function retryEditor() {
+    setEditorFailed(false);
+    setEditorStatus('Reloading the field plate…');
+    setEditorAttempt((attempt) => attempt + 1);
+  }
+
+  function publishDispatch(image: string) {
+    if (!image) return;
 
     const dispatch: Dispatch = {
       id: `${selected.id}-${Date.now()}`,
       assignmentId: selected.id,
-      image: printedImage,
+      image,
       issue: `${selected.issue}.${String(dispatches.length + 1).padStart(2, '0')}`,
       createdAt: formatTime(),
     };
@@ -194,6 +203,7 @@ export default function Home() {
               if (step.id === 'archive' || index <= currentStep) setScreen(step.id);
             }}
             disabled={index > currentStep && step.id !== 'archive'}
+            aria-current={index === currentStep ? 'step' : undefined}
           >
             <span>{step.number}</span>
             {step.label}
@@ -204,12 +214,20 @@ export default function Home() {
       {screen === 'desk' && (
         <section className="desk-screen screen" aria-labelledby="desk-title">
           <div className="desk-copy">
-            <p className="eyebrow">Cala Verda, 02:00 until it is not</p>
-            <h1 id="desk-title">Every night leaves a mark.<br /><em>Make it printable.</em></h1>
-            <p className="intro">Saltline is the after-hours desk for a city that only explains itself when you cut, circle, stain, and publish the evidence.</p>
+            <p className="eyebrow">Cala Verda / live case desk / 02:13</p>
+            <h1 id="desk-title">The city plays dumb.<br /><em>Make the proof loud.</em></h1>
+            <p className="intro">Saltline is an original coastal-crime dispatch in a boomtown of marina money, motel alibis, and bad decisions. Your job is simple: turn one field image into the version of the night that survives.</p>
+            <div className="run-card" aria-label="How to complete tonight's run">
+              <span className="run-card-label">Tonight&apos;s run</span>
+              <ol>
+                <li><b>01</b><span>Pick one late-night case.</span></li>
+                <li><b>02</b><span>Use the editor to frame and mark the evidence.</span></li>
+                <li><b>03</b><span>Save it. Your exact export hits the issue wall.</span></li>
+              </ol>
+            </div>
             <div className="desk-actions">
-              <button className="ink-button" onClick={() => setScreen('calls')}>Take the night desk <span>→</span></button>
-              <span className="edition-note">3 field calls<br />one edition</span>
+              <button className="ink-button" onClick={() => setScreen('calls')}>Start tonight&apos;s run <span>→</span></button>
+              <span className="edition-note">3 cases<br />1 saved dispatch</span>
             </div>
           </div>
           <div className="desk-plate" aria-hidden="true">
@@ -220,7 +238,7 @@ export default function Home() {
             <div className="plate-strip plate-strip-two">NO. 04 / KEEP MOVING</div>
             <div className="plate-stamp">S<br />L</div>
           </div>
-          <p className="desk-footer">You are not a hero. You are the person who decides which version survives the night.</p>
+          <p className="desk-footer">Not a hero. A witness with an editor, a deadline, and one chance to make the city talk.</p>
         </section>
       )}
 
@@ -228,33 +246,30 @@ export default function Home() {
         <section className="calls-screen screen" aria-labelledby="calls-title">
           <div className="calls-heading">
             <div>
-              <p className="eyebrow">Three field calls waiting</p>
-              <h1 id="calls-title">Choose one thing<br />the city cannot explain.</h1>
+              <p className="eyebrow">Step 02 / one case per run</p>
+              <h1 id="calls-title">Choose the story<br />the city wants buried.</h1>
             </div>
-            <p>Each call comes with a single field plate. Your edit will become the dispatch on the issue wall.</p>
+            <p>Each case starts with one original field plate. You will shape it in the editor, save it, and see that exact image become a published city dispatch.</p>
           </div>
           <div className="call-list">
             {ASSIGNMENTS.map((assignment, index) => (
               <article
-                className={`call-card accent-${assignment.accent} ${assignment.id === selected.id ? 'is-selected' : ''}`}
+                className={`call-card accent-${assignment.accent}`}
                 key={assignment.id}
               >
-                <button className="call-card-select" onClick={() => chooseAssignment(assignment.id)} aria-label={`Select ${assignment.title}`}>
+                <button className="call-card-select" onClick={() => beginAssignment(assignment.id)} aria-label={`Open ${assignment.title} in the evidence editor`}>
                   <span className="call-index">0{index + 1}</span>
                   <span className="call-time">{assignment.time}</span>
                   <span className="call-image"><img src={assignment.image} alt="" /></span>
-                  <span className="call-place">{assignment.place}</span>
+                  <span className="call-place">{assignment.call} / {assignment.place}</span>
                   <strong>{assignment.title}</strong>
                   <span className="call-deck">{assignment.deck}</span>
-                  <span className="call-pick">{assignment.id === selected.id ? 'Assigned' : 'Take call'} <b>↗</b></span>
+                  <span className="call-pick">Open evidence desk <b>↗</b></span>
                 </button>
               </article>
             ))}
           </div>
-          <div className="call-footer">
-            <span>THE DESK HAS NO REWIND. THE EDITOR DOES.</span>
-            <button className="ink-button" onClick={openHotPlate}>Open {selected.title} <span>→</span></button>
-          </div>
+          <p className="call-footer">Choose a card to open its field plate. There is no case-selection step after this one.</p>
         </section>
       )}
 
@@ -262,39 +277,48 @@ export default function Home() {
         <section className="edit-screen screen" aria-labelledby="edit-title">
           <aside className="edit-brief">
             <button className="back-button" onClick={() => setScreen('calls')}>← Field calls</button>
-            <p className="eyebrow">{selected.issue} / {selected.time}</p>
+            <p className="eyebrow">Step 03 / {selected.call} / {selected.time}</p>
             <h1 id="edit-title">{selected.title}</h1>
             <p className="edit-place">{selected.place}</p>
             <p className="edit-prompt">“{selected.prompt}”</p>
             <ol className="editor-moves">
-              <li><b>01</b><span><strong>Frame it</strong>Crop toward the thing that matters.</span></li>
-              <li><b>02</b><span><strong>Mark it</strong>Add a line, word, shape, or imperfect signal.</span></li>
-              <li><b>03</b><span><strong>Print it</strong>The flattened plate enters tonight’s issue.</span></li>
+              <li><b>01</b><span><strong>Frame the proof</strong>Crop toward the thing that matters.</span></li>
+              <li><b>02</b><span><strong>Make one mark</strong>Add a line, word, shape, or imperfect signal.</span></li>
+              <li><b>03</b><span><strong>Save to publish</strong>Use any editor tool to make a mark, then Save (✓) at top right. Its exact export enters tonight&apos;s issue.</span></li>
             </ol>
             <p className="editor-status" role="status">{editorStatus}</p>
+            {editorFailed && <button className="retry-button" onClick={retryEditor}>Retry editor →</button>}
           </aside>
           <div className="editor-stage">
             <div className="editor-stage-bar">
-              <span><i className="live-dot" /> FIELD PLATE / ORIGINAL ART</span>
-              <span>MANUAL TOOLS ONLY</span>
+              <span><i className="live-dot" /> STEP 03 / FIELD PLATE / ORIGINAL ART</span>
+              <span>SAVE = PUBLISH</span>
             </div>
             <div className="editor-shell">
               <ImageEditor
-                key={selected.id}
-                ref={editorRef}
+                key={`${selected.id}-${editorAttempt}`}
                 image={selected.image}
-                minHeight="min(70vh, 760px)"
+                minHeight="min(58vh, 660px)"
                 options={EDITOR_OPTIONS}
-                onLoad={() => setEditorStatus('The plate is live. Make a case, not a collage.')}
-                onLoadError={() => setEditorStatus('The field plate did not load. Return to the calls and try again.')}
-                onError={() => setEditorStatus('The image desk could not open. Check the connection and retry the call.')}
-                onSave={({ dataUrl }) => printDispatch(dataUrl)}
+                onLoad={() => {
+                  setEditorFailed(false);
+                  setEditorStatus('The plate is live. Make a case, not a collage.');
+                }}
+                onLoadError={() => {
+                  setEditorFailed(true);
+                  setEditorStatus('The field plate did not load. Retry the editor or return to the cases.');
+                }}
+                onError={() => {
+                  setEditorFailed(true);
+                  setEditorStatus('The image desk could not open. Retry the editor when the connection is ready.');
+                }}
+                onSave={({ dataUrl }) => publishDispatch(dataUrl)}
                 onCancel={() => setEditorStatus('The press is still waiting. Your field plate stays on the desk.')}
               />
             </div>
             <div className="editor-actions">
-              <p>Use the editor’s own Save if you want. Or print the current plate straight from the desk.</p>
-              <button className="ink-button" onClick={() => printDispatch()}>Print dispatch <span>→</span></button>
+              <p>Your single required move: add the signal you want, then click <strong>Save (✓)</strong> in the editor&apos;s top-right corner. There is no publish bypass.</p>
+              <span className="save-cue" aria-hidden="true">SAVE ↑</span>
             </div>
           </div>
         </section>
@@ -303,9 +327,14 @@ export default function Home() {
       {screen === 'reveal' && activeDispatch && (
         <section className="reveal-screen screen" aria-labelledby="reveal-title">
           <div className="reveal-aside">
-            <p className="eyebrow">Printed at {activeDispatch.createdAt}</p>
-            <h1 id="reveal-title">The city has<br /><em>your version now.</em></h1>
+            <p className="eyebrow">Step 04 / published at {activeDispatch.createdAt}</p>
+            <h1 id="reveal-title">Your edit is<br /><em>on the record.</em></h1>
             <p>{activeAssignment.outcome}</p>
+            <div className="source-plate">
+              <img src={activeAssignment.image} alt={`Original field plate for ${activeAssignment.title}`} />
+              <span><b>Original field plate</b>Your saved edit is the dispatch beside it.</span>
+            </div>
+            <p className="reveal-proof">This is the exact flattened image returned by React Image Editor. Pin it to the wall, or keep the plate.</p>
             <div className="reveal-actions">
               <button className="ink-button" onClick={() => setScreen('archive')}>Pin to issue wall <span>→</span></button>
               <button className="text-button" onClick={downloadDispatch}>Download plate ↓</button>
@@ -315,7 +344,7 @@ export default function Home() {
             <div className="dispatch-masthead"><span>SALTLINE / NIGHT EDITION</span><b>{activeDispatch.issue}</b></div>
             <div className="dispatch-image"><img src={activeDispatch.image} alt={`Edited dispatch for ${activeAssignment.title}`} /></div>
             <div className="dispatch-caption"><span>{activeAssignment.place}</span><span>THE FIELD DESK DID NOT ALTER THE FACTS. ONLY THE LIGHT.</span></div>
-            <div className="dispatch-stamp">PRINTED<br />02:44</div>
+            <div className="dispatch-stamp">PRINTED<br />{activeDispatch.createdAt}</div>
           </article>
         </section>
       )}
@@ -324,10 +353,10 @@ export default function Home() {
         <section className="archive-screen screen" aria-labelledby="archive-title">
           <div className="archive-heading">
             <div>
-              <p className="eyebrow">Night edition / issue wall</p>
-              <h1 id="archive-title">Nothing disappears.<br /><em>It just gets filed badly.</em></h1>
+              <p className="eyebrow">Step 05 / night edition archive</p>
+              <h1 id="archive-title">Your version has<br /><em>a place in the city.</em></h1>
             </div>
-            <button className="ink-button" onClick={() => setScreen('calls')}>Take another call <span>→</span></button>
+            <button className="ink-button" onClick={() => setScreen('calls')}>Run another case <span>→</span></button>
           </div>
           {dispatches.length ? (
             <div className="archive-wall">
@@ -345,7 +374,7 @@ export default function Home() {
                   >
                     <img src={dispatch.image} alt={`Open saved ${assignment.title} dispatch`} />
                     <span>{dispatch.issue} / {assignment.title}</span>
-                    <i>02:44</i>
+                    <i>{dispatch.createdAt}</i>
                   </button>
                 );
               })}

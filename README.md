@@ -2,19 +2,23 @@
 
 > Every night leaves a mark. Make it printable.
 
-Saltline Dispatch is an original late-night coastal editorial micro-experience built for Unlayer's Build With React Image Editor Challenge. You are the night-desk stringer for fictional Cala Verda. Choose one field call, shape its original field image with Unlayer React Image Editor, print the dispatch, then see that exact saved artifact enter the issue wall.
+Saltline Dispatch is an original GTA VI-inspired late-night coastal editorial micro-experience built for Unlayer's Build With React Image Editor Challenge. You are the night-desk stringer for fictional Cala Verda, a boomtown of marina money, roadside motels, carnival glare, and disposable alibis. Choose one field call, shape its original field image with Unlayer React Image Editor, save the dispatch, then see that exact artifact enter the issue wall.
 
 ![Saltline Dispatch journey](public/saltline-dispatch.gif)
 
 ## The 3 to 5 minute loop
 
-1. **Night desk:** take the overnight shift.
-2. **Field calls:** choose Wake Tax, Room 08, or After the Rain.
-3. **Hot plate:** crop, filter, annotate, frame, and otherwise shape the original field image with React Image Editor.
-4. **Press run:** print the current canvas. The result is the image returned by the editor, not a mockup.
-5. **Issue wall:** the saved image becomes the collectible dispatch in the session archive. It can also be downloaded as PNG.
+1. **Briefing:** learn the one objective: turn one late-night case into a published city dispatch.
+2. **Pick a case:** choose Wake Tax, Room 08, or After the Rain.
+3. **Edit evidence:** crop, filter, annotate, frame, and otherwise shape the original field image with React Image Editor.
+4. **Publish:** use the editor's own **Save** control. The result is the image returned by the editor, not a mockup or a separate upload.
+5. **Archive:** the saved image becomes the collectible dispatch in the session archive. It can also be downloaded as PNG.
 
-The editor is indispensable: removing it removes the visitor-authored dispatch and the central before/edit/save/reveal loop.
+The editor is indispensable: there is no publish bypass. Removing it removes the visitor-authored dispatch and the central before/edit/save/reveal loop.
+
+## Original GTA VI-inspired direction
+
+Saltline takes inspiration from the feeling of an open-city coastal crime saga: fake luxury beside real danger, a saturated waterfront after midnight, fleeting witnesses, and tabloid-scale consequences. Cala Verda, its cases, its places, its copy, and its visual language are original. The project deliberately does not recreate GTA VI scenes or use Rockstar, Take-Two, GTA, Vice City, trailer, leaked, or franchise assets.
 
 ## Why React Image Editor is core
 
