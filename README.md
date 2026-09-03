@@ -8,7 +8,7 @@ Saltline Dispatch is an original GTA VI-inspired late-night coastal editorial mi
 
 ## The 3 to 5 minute loop
 
-1. **First-shift briefing:** choose whether you follow people or objects, then learn the three-part field loop and receive a recommended first call.
+1. **Landing desk and first-shift briefing:** start on the live case desk, then choose whether you follow people or objects after selecting **Start tonight's run**. The guided brief recommends a first call and explains the loop.
 2. **Pick a case:** choose from five original late-night calls: Wake Tax, Room 08, After the Rain, Undertow, or Off the Meter.
 3. **Angle Lock and edit evidence:** choose one of two editorial leads for the case, then crop, filter, annotate, frame, and otherwise shape the original field image with React Image Editor. The lead changes the brief, printed caption, and outcome.
 4. **Publish:** use the editor's own **Save** control. The result is the image returned by the editor, not a mockup or a separate upload.

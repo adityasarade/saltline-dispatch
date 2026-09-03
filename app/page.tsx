@@ -170,7 +170,7 @@ export default function Home() {
   const [selectedAngleId, setSelectedAngleId] = useState(ASSIGNMENTS[0].angles[0].id);
   const [briefingStep, setBriefingStep] = useState<'instinct' | 'loop'>('instinct');
   const [instinct, setInstinct] = useState<Instinct | null>(null);
-  const [isBriefingOpen, setIsBriefingOpen] = useState(true);
+  const [isBriefingOpen, setIsBriefingOpen] = useState(false);
   const [isClosingFrameOpen, setIsClosingFrameOpen] = useState(false);
   const [dispatches, setDispatches] = useState<Dispatch[]>([]);
   const [activeDispatchId, setActiveDispatchId] = useState<string | null>(null);
@@ -224,6 +224,12 @@ export default function Home() {
   function browseFieldCalls() {
     setIsBriefingOpen(false);
     setScreen('calls');
+  }
+
+  function startTonightRun() {
+    setInstinct(null);
+    setBriefingStep('instinct');
+    setIsBriefingOpen(true);
   }
 
   function retryEditor() {
@@ -315,7 +321,7 @@ export default function Home() {
               </ol>
             </div>
             <div className="desk-actions">
-              <button className="ink-button" onClick={() => setScreen('calls')}>Start tonight&apos;s run <span>→</span></button>
+              <button className="ink-button" onClick={startTonightRun}>Start tonight&apos;s run <span>→</span></button>
               <span className="edition-note">5 cases<br />1 saved dispatch</span>
             </div>
           </div>
