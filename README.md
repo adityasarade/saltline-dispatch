@@ -2,58 +2,115 @@
 
 > Every night leaves a mark. Make it printable.
 
-Saltline Dispatch is an original GTA VI-inspired late-night coastal editorial micro-experience built for Unlayer's Build With React Image Editor Challenge. You are the night-desk stringer for fictional Cala Verda, a boomtown of marina money, roadside motels, carnival glare, and disposable alibis. Choose one field call, shape its original field image with Unlayer React Image Editor, save the dispatch, then see that exact artifact enter the issue wall.
+Saltline Dispatch is an original late-night coastal editorial micro-experience built for Unlayer's Build With React Image Editor Challenge. It answers the challenge's requested crime-game premise through the entirely fictional city of Cala Verda, an independent visual language, and original assets. You are the night-desk stringer: choose one field call, lock its editorial angle, work the source plate in React Image Editor, then save the exact result into the night edition.
+
+[Live preview](https://saltline-dispatch.aditya-sarade2003.chatgpt.site) · [Public source](https://github.com/adityasarade/saltline-dispatch)
+
+> Access note: the live preview remains owner-only until public launch is explicitly approved. The repository is public.
 
 ![Saltline Dispatch journey](public/saltline-dispatch.gif)
 
 ## The 3 to 5 minute loop
 
-1. **Landing desk and first-shift briefing:** start on the live case desk, then choose whether you follow people or objects after selecting **Start tonight's run**. The guided brief recommends a first call and explains the loop.
-2. **Pick a case:** choose from five original late-night calls: Wake Tax, Room 08, After the Rain, Undertow, or Off the Meter.
-3. **Angle Lock and edit evidence:** choose one of two editorial leads for the case, then crop, filter, annotate, frame, and otherwise shape the original field image with React Image Editor. The lead changes the brief, printed caption, and outcome.
-4. **Publish:** use the editor's own **Save** control. The result is the image returned by the editor, not a mockup or a separate upload.
-5. **Closing frame and archive:** the saved image gets an original halftone editorial closing frame before entering the collectible session archive. It can also be downloaded as PNG.
+1. **Landing desk and first-shift guide:** Select **Start tonight's run** to open the two-step guide. Choose whether to follow a person or an object, then open the recommended call or browse all five.
+2. **Field calls:** Choose exactly one of five original calls: Wake Tax, Room 08, After the Rain, Undertow, or Off the Meter.
+3. **Angle Lock and editor:** Every call offers two editorial leads. Lock one, then work the original 1536 × 1024 same-origin field plate in React Image Editor with crop, filters, draw, text, shapes, stickers, or frames.
+4. **Publish:** Select the editor's own **Save (✓)** control. Its returned `dataUrl` is the only publish path.
+5. **Reveal, closing frame, and archive:** The exact flattened `dataUrl` appears in the publish reveal, the closing-frame overlay, and the session archive. Saltline's paper, stamp, and caption sit outside the exported pixels. Download uses that same export and its returned image format.
 
-The editor is indispensable: there is no publish bypass. Removing it removes the visitor-authored dispatch and the central choose/edit/save/reveal loop.
+The five screens are landing desk, field calls, editor, publish, and archive. The first-shift guide and closing frame are overlays inside that flow. Removing React Image Editor removes the visitor-authored dispatch and breaks the central loop.
 
-## Original GTA VI-inspired direction
+## Original coastal-crime direction
 
-Saltline takes inspiration from the feeling of an open-city coastal crime saga: fake luxury beside real danger, a saturated waterfront after midnight, fleeting witnesses, and tabloid-scale consequences. Cala Verda, its cases, its places, its copy, and its visual language are original. The project deliberately does not recreate GTA VI scenes or use Rockstar, Take-Two, GTA, Vice City, trailer, leaked, or franchise assets.
+Cala Verda is a boomtown of marina money, roadside motels, carnival glare, ferry lanes, and disposable alibis. Saltline borrows only the challenge's broad tension between coastal spectacle and after-hours consequence. Its cases, places, copy, interface, and visual system are original. It does not recreate franchise scenes or use franchise characters, logos, maps, screenshots, trailers, leaked material, audio, or copied interface styling.
 
 ## Why React Image Editor is core
 
-Saltline uses [`@unlayer/react-image-editor`](https://github.com/unlayer/react-image-editor) 1.0.2 as the in-world publishing desk. Each assignment starts with a same-origin original field image. The user uses crop, filters, draw, text, shapes, stickers, and frames to produce a custom hot plate. `onSave` returns the edited `dataUrl`; the app immediately prints that image into the reveal and issue wall.
+Saltline uses [`@unlayer/react-image-editor`](https://github.com/unlayer/react-image-editor) 1.0.2 as the in-world publishing desk. Every assignment begins with a same-origin original field plate. The visitor can crop, filter, draw, add text, place shapes or stickers, and frame the image. Angle Lock gives that freeform editing a story purpose by changing the brief, outcome, and issue stamp.
 
-The editor's feature configuration is intentionally stable because changing features remounts the editor and discards edits. The AI Assistant is not used, so no API key, account, backend, or paid feature is required for the core experience.
+The editor's `onSave` result is the source of truth. The returned `dataUrl` is stored directly in local React state and rendered as the reveal, closing frame, archive item, and download. There is no alternate upload, mock artifact, or publish bypass. Saved-image pixels are shown with `object-fit: contain` and without CSS filters, grain overlays, captions, or stamps on top of them.
+
+The feature configuration stays stable because changing editor features remounts the editor and discards work. The AI Assistant is not used, so the experience needs no API key, account, backend, or paid service.
+
+## Performance and image delivery
+
+Saltline preserves each original 1536 × 1024 PNG as the untouched same-origin source passed to React Image Editor. Display-only surfaces use measured WebP derivatives, keeping browsing light without reducing editable plate quality.
+
+- Only the responsive landing hero loads eagerly and at high priority.
+- The editor package is deferred until the editing screen opens.
+- Five 768 × 512 call previews use native lazy loading and explicit dimensions.
+- The selected full-resolution PNG begins loading on activation, in parallel with the editor runtime.
+- A case-specific preview holds the stage while the full-resolution plate and editor load.
+- Dynamic export frames reserve their layout and contain any crop ratio without hiding pixels.
+
+| Surface | Before | After |
+| --- | ---: | ---: |
+| Landing hero | 3,361,867 B PNG | 160,582 B WebP at 768 px, or 583,562 B at 1536 px |
+| All five call images | 15,317,149 B PNG | 431,592 B total WebP previews |
+| Selected editor source | 2,798,020 to 3,177,871 B PNG | Unchanged original PNG |
+
+The 768 px hero reduces encoded weight by 95.22%, while the five call previews reduce it by 97.18%. Repository bytes are shown above. Actual transfer depends on viewport, cache state, and which native-lazy previews enter the browser's loading threshold.
+
+## Screenshots
+
+| Night desk | First-shift guide |
+| --- | --- |
+| ![Saltline landing desk at 1280 by 720](docs/screenshots/landing-1280x720.webp) | ![Saltline first-shift guide at 390 by 844](docs/screenshots/guide-390x844.webp) |
+
+| Five field calls | Angle Lock and React Image Editor |
+| --- | --- |
+| ![Five Saltline field calls at 1280 by 720](docs/screenshots/field-calls-1280x720.webp) | ![Saltline evidence editor at 1280 by 720](docs/screenshots/editor-1280x720.webp) |
+
+| Exact saved reveal | Closing frame |
+| --- | --- |
+| ![Saltline published dispatch at 1280 by 720](docs/screenshots/publish-1280x720.webp) | ![Saltline closing frame at 390 by 844](docs/screenshots/closing-390x844.webp) |
+
+| Session archive |
+| --- |
+| ![Saltline session archive at 390 by 844](docs/screenshots/archive-390x844.webp) |
 
 ## Run locally
 
+Requires Node.js 22.13.0 or newer.
+
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-Then visit the local URL printed by the development server. A deployed version also needs network access to Unlayer's image-editor CDN.
+Open the local URL printed by the development server. React Image Editor loads its runtime from Unlayer's CDN, so the editing step requires network access.
+
+## Verify locally
+
+```bash
+npm run lint
+npm run build
+```
+
+The competition-readiness pass also exercises cold loads at 390 × 844 and 1280 × 720, horizontal overflow, both guide branches, Angle Lock, editor loading and recovery states, required Save, exact reveal-to-closing-to-archive identity, replay, and modal keyboard behavior.
 
 ## Stack
 
 - React 19, TypeScript, Vinext, and OpenAI Sites
 - Unlayer React Image Editor 1.0.2
 - Local React state for the current session archive
-- Same-origin original PNG field images, avoiding canvas CORS failure
+- Same-origin 1536 × 1024 PNG editor sources
+- Responsive WebP derivatives for display-only surfaces
 
 ## Originality and assets
 
-Saltline is an unofficial, independent contest entry. It is not affiliated with, sponsored by, or endorsed by Rockstar Games or Take-Two Interactive. It does not use GTA VI, Rockstar, One Piece, or other franchise characters, logos, screenshots, trailers, leaked material, audio, maps, visual assets, or copied UI.
+Saltline is an unofficial, independent contest entry. It is not affiliated with or endorsed by any game publisher. It uses no franchise characters, logos, screenshots, trailers, leaked material, anime characters, real-brand marks, or unlicensed assets.
 
-All assignment artwork and interface marks are original to this project. See [asset provenance](docs/asset-provenance.md).
+All assignment artwork and interface marks were created for this project. See [asset provenance](docs/asset-provenance.md).
 
 ## Repository notes
 
 - The complete source needed to run the project is public.
 - The React Image Editor implementation is visible in [app/page.tsx](app/page.tsx).
-- The field art is served from `public/images` so the editing canvas has same-origin inputs.
-- The project deliberately has five assignments and the five-screen flow. Its optional first-shift briefing and closing frame stay inside that structure. There is no account system, backend, analytics, external API, or generated-story dependency.
+- Canonical field plates remain in `public/images` for same-origin canvas compatibility.
+- Display derivatives live in `public/images/display` and are never passed to the editor.
+- The project deliberately keeps five assignments and five screens. Its guide and closing frame remain overlays.
+- There is no account system, backend, analytics, external API, or generated-story dependency.
 
 ## Challenge links
 
