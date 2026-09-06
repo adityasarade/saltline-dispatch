@@ -1,10 +1,16 @@
 /* eslint-disable @next/next/no-img-element -- editor exports are user-specific data URLs and must remain unoptimized. */
 'use client';
 
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Component, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import type { ImageEditorRef, ImageEditorSaveResult } from '@unlayer/react-image-editor';
 
 type Screen = 'desk' | 'calls' | 'edit' | 'reveal' | 'archive';
 type Instinct = 'person' | 'object';
+
+type ToolCue = {
+  tool: 'Crop' | 'Filter' | 'Draw' | 'Text' | 'Shapes' | 'Frame';
+  instruction: string;
+};
 
 type Angle = {
   id: string;
@@ -12,6 +18,10 @@ type Angle = {
   prompt: string;
   outcome: string;
   stamp: string;
+  moves: [ToolCue, ToolCue, ToolCue];
+  closingLead: string;
+  closingEmphasis: string;
+  closingDeck: string;
 };
 
 type Assignment = {
@@ -40,6 +50,14 @@ type Dispatch = {
   angleLabel: string;
   angleOutcome: string;
   angleStamp: string;
+  closingLead: string;
+  closingEmphasis: string;
+  closingDeck: string;
+  plateCode: string;
+  byteSize: number;
+  mimeType: string;
+  width: number | null;
+  height: number | null;
 };
 
 const ASSIGNMENTS: Assignment[] = [
@@ -57,8 +75,36 @@ const ASSIGNMENTS: Assignment[] = [
     preview: '/images/display/wake-tax-768.webp',
     accent: 'coral',
     angles: [
-      { id: 'expose-launch', label: 'Expose the launch', prompt: 'Center the pleasure launch. Let the ferry lane tell on it.', outcome: 'The ferry master clipped your plate to the manifest before sunrise. Two hours later, the boat was moored under a borrowed name.', stamp: 'LAUNCH EXPOSED' },
-      { id: 'protect-crew', label: 'Protect the ferry crew', prompt: 'Keep the ferry in frame. Make the boat club carry the blame.', outcome: 'The crew made the first crossing untouched. By breakfast, the boat club had sent three lawyers and one silent apology.', stamp: 'CREW PROTECTED' },
+      {
+        id: 'expose-launch',
+        label: 'Expose the launch',
+        prompt: 'Center the pleasure launch. Let the ferry lane tell on it.',
+        outcome: 'The ferry master clipped your plate to the manifest before sunrise. Two hours later, the boat was moored under a borrowed name.',
+        stamp: 'LAUNCH EXPOSED',
+        moves: [
+          { tool: 'Crop', instruction: 'Keep the launch, toll buoy, and broken wake together.' },
+          { tool: 'Draw', instruction: 'Trace the wake back toward the launch.' },
+          { tool: 'Text', instruction: 'Mark the time where the ferry lane narrows.' },
+        ],
+        closingLead: 'The wake reaches',
+        closingEmphasis: 'the ledger first.',
+        closingDeck: 'The club can rename the boat by sunrise. It cannot rename the route you printed.',
+      },
+      {
+        id: 'protect-crew',
+        label: 'Protect the ferry crew',
+        prompt: 'Keep the ferry in frame. Make the boat club carry the blame.',
+        outcome: 'The crew made the first crossing untouched. By breakfast, the boat club had sent three lawyers and one silent apology.',
+        stamp: 'CREW PROTECTED',
+        moves: [
+          { tool: 'Crop', instruction: 'Hold the ferry lane and push the launch to the edge.' },
+          { tool: 'Shapes', instruction: 'Box the safe line the crew kept.' },
+          { tool: 'Text', instruction: 'Give the first crossing a clean label.' },
+        ],
+        closingLead: 'The first crossing',
+        closingEmphasis: 'keeps its name.',
+        closingDeck: 'The crew reaches dawn untouched. The boat club inherits every question left in frame.',
+      },
     ],
   },
   {
@@ -75,8 +121,36 @@ const ASSIGNMENTS: Assignment[] = [
     preview: '/images/display/room-08-768.webp',
     accent: 'teal',
     angles: [
-      { id: 'show-witness', label: 'Show the witness', prompt: 'Hold the balcony. Let the witness stay visible through the noise.', outcome: 'By breakfast the manager had changed the key cards. The person behind the door left a damp matchbook on the desk with no room number.', stamp: 'WITNESS SHOWN' },
-      { id: 'hide-witness', label: 'Hide the witness', prompt: 'Cut the balcony loose. Put the reflection, not the person, on the record.', outcome: 'The coupe disappeared before dawn. The pool reflection remained, sharp enough for the night desk and nobody else.', stamp: 'WITNESS HELD' },
+      {
+        id: 'show-witness',
+        label: 'Show the witness',
+        prompt: 'Hold the balcony. Let the witness stay visible through the noise.',
+        outcome: 'By breakfast the manager had changed the key cards. The person behind the door left a damp matchbook on the desk with no room number.',
+        stamp: 'WITNESS SHOWN',
+        moves: [
+          { tool: 'Crop', instruction: 'Keep the balcony and its pool reflection together.' },
+          { tool: 'Filter', instruction: 'Lift the contrast until the light holds.' },
+          { tool: 'Draw', instruction: 'Bracket the window the manager denies.' },
+        ],
+        closingLead: 'One balcony',
+        closingEmphasis: 'stays lit.',
+        closingDeck: 'The key cards change before breakfast. The witness remains exactly where you left the light.',
+      },
+      {
+        id: 'hide-witness',
+        label: 'Hide the witness',
+        prompt: 'Cut the balcony loose. Put the reflection, not the person, on the record.',
+        outcome: 'The coupe disappeared before dawn. The pool reflection remained, sharp enough for the night desk and nobody else.',
+        stamp: 'WITNESS HELD',
+        moves: [
+          { tool: 'Crop', instruction: 'Cut the balcony and keep the pool in frame.' },
+          { tool: 'Filter', instruction: 'Cool the scene until the reflection leads.' },
+          { tool: 'Text', instruction: 'Leave one room number unanswered.' },
+        ],
+        closingLead: 'The reflection',
+        closingEmphasis: 'keeps the secret.',
+        closingDeck: 'The coupe leaves before dawn. The only witness left is water, and water never signs a statement.',
+      },
     ],
   },
   {
@@ -93,8 +167,36 @@ const ASSIGNMENTS: Assignment[] = [
     preview: '/images/display/after-rain-daybreak-768.webp',
     accent: 'gold',
     angles: [
-      { id: 'publish-mask', label: 'Publish the mask', prompt: 'Find the mask. Let the morning city see what the carnival denied.', outcome: 'The mask made the morning edition, then vanished from the evidence bag. A brass ticket appeared where it had been, stamped for a ride that has not existed in twelve years.', stamp: 'MASK PUBLISHED' },
-      { id: 'follow-courier', label: 'Follow the courier', prompt: 'Follow the courier through the reflection. Keep the mask as a warning, not the headline.', outcome: 'The courier crossed the service bridge at dawn. The carnival kept its mask, but the route was now on the record.', stamp: 'COURIER FOLLOWED' },
+      {
+        id: 'publish-mask',
+        label: 'Publish the mask',
+        prompt: 'Find the mask. Let the morning city see what the carnival denied.',
+        outcome: 'The mask made the morning edition, then vanished from the evidence bag. A brass ticket appeared where it had been, stamped for a ride that has not existed in twelve years.',
+        stamp: 'MASK PUBLISHED',
+        moves: [
+          { tool: 'Crop', instruction: 'Pull the mask and floodwater into the same proof.' },
+          { tool: 'Filter', instruction: 'Bleach the morning without cleaning the scene.' },
+          { tool: 'Shapes', instruction: 'Ring the object the carnival never logged.' },
+        ],
+        closingLead: 'The mask makes',
+        closingEmphasis: 'the morning run.',
+        closingDeck: 'It disappears from evidence after print. The edition keeps the face the carnival tried to lose.',
+      },
+      {
+        id: 'follow-courier',
+        label: 'Follow the courier',
+        prompt: 'Follow the courier through the reflection. Keep the mask as a warning, not the headline.',
+        outcome: 'The courier crossed the service bridge at dawn. The carnival kept its mask, but the route was now on the record.',
+        stamp: 'COURIER FOLLOWED',
+        moves: [
+          { tool: 'Crop', instruction: 'Hold the courier, service bridge, and reflection.' },
+          { tool: 'Draw', instruction: 'Run a route line through the wet street.' },
+          { tool: 'Text', instruction: 'Stamp the next crossing time beside the rider.' },
+        ],
+        closingLead: 'A wet route',
+        closingEmphasis: 'outlives the rider.',
+        closingDeck: 'The carnival keeps its mask. Your line gives the morning desk somewhere real to follow.',
+      },
     ],
   },
   {
@@ -111,8 +213,36 @@ const ASSIGNMENTS: Assignment[] = [
     preview: '/images/display/undertow-768.webp',
     accent: 'teal',
     angles: [
-      { id: 'print-handoff', label: 'Print the hand-off', prompt: 'Frame the phone and wet sleeve. Make the exchange impossible to deny.', outcome: 'At high tide the phone was gone, but the wet sleeve made the morning print. The tender owner stopped returning calls at 08:01.', stamp: 'HAND-OFF PRINTED' },
-      { id: 'follow-tender', label: 'Follow the tender', prompt: 'Let the phone fall away. Hold the watcher and the tender in the same story.', outcome: 'The tender left before dawn. Its wake cut straight past the quay cameras, but your plate preserved the one person who watched it go.', stamp: 'TENDER FOLLOWED' },
+      {
+        id: 'print-handoff',
+        label: 'Print the hand-off',
+        prompt: 'Frame the phone and wet sleeve. Make the exchange impossible to deny.',
+        outcome: 'At high tide the phone was gone, but the wet sleeve made the morning print. The tender owner stopped returning calls at 08:01.',
+        stamp: 'HAND-OFF PRINTED',
+        moves: [
+          { tool: 'Crop', instruction: 'Keep the phone, wet sleeve, and tide line tight.' },
+          { tool: 'Filter', instruction: 'Push contrast until the hand-off reads first.' },
+          { tool: 'Shapes', instruction: 'Box the exchange the quay cameras missed.' },
+        ],
+        closingLead: 'The tide takes',
+        closingEmphasis: 'everything but proof.',
+        closingDeck: 'The phone is gone at high water. The sleeve remains in print, dry enough for every desk in town.',
+      },
+      {
+        id: 'follow-tender',
+        label: 'Follow the tender',
+        prompt: 'Let the phone fall away. Hold the watcher and the tender in the same story.',
+        outcome: 'The tender left before dawn. Its wake cut straight past the quay cameras, but your plate preserved the one person who watched it go.',
+        stamp: 'TENDER FOLLOWED',
+        moves: [
+          { tool: 'Crop', instruction: 'Pair the watcher with the tender in one frame.' },
+          { tool: 'Draw', instruction: 'Pull an arrow from the quay into the channel.' },
+          { tool: 'Text', instruction: 'Mark the departure time the cameras lost.' },
+        ],
+        closingLead: 'One wake line',
+        closingEmphasis: 'leaves the quay.',
+        closingDeck: 'The tender clears the cameras before dawn. Your plate keeps the watcher attached to its route.',
+      },
     ],
   },
   {
@@ -129,13 +259,88 @@ const ASSIGNMENTS: Assignment[] = [
     preview: '/images/display/off-the-meter-768.webp',
     accent: 'coral',
     angles: [
-      { id: 'tag-driver', label: 'Tag the driver', prompt: 'Hold the driver against the ferry lights. Make the exit the whole story.', outcome: 'The ferry crossed without the driver. At first light, the shuttle appeared two districts away with the same ribbon and a different fare.', stamp: 'DRIVER TAGGED' },
-      { id: 'map-route', label: 'Map the route', prompt: 'Keep the empty shuttle and the meter together. Let the route expose itself.', outcome: 'The meter kept running until noon. Its impossible fare drew a line through three districts and one sealed marina gate.', stamp: 'ROUTE MAPPED' },
+      {
+        id: 'tag-driver',
+        label: 'Tag the driver',
+        prompt: 'Hold the driver against the ferry lights. Make the exit the whole story.',
+        outcome: 'The ferry crossed without the driver. At first light, the shuttle appeared two districts away with the same ribbon and a different fare.',
+        stamp: 'DRIVER TAGGED',
+        moves: [
+          { tool: 'Crop', instruction: 'Keep the driver against the last ferry lights.' },
+          { tool: 'Draw', instruction: 'Circle the person leaving the running meter.' },
+          { tool: 'Text', instruction: 'Tag the final fare beside the causeway.' },
+        ],
+        closingLead: 'The driver walks',
+        closingEmphasis: 'out of the fare.',
+        closingDeck: 'The shuttle returns under new plates. The person who left it cannot step out of your frame.',
+      },
+      {
+        id: 'map-route',
+        label: 'Map the route',
+        prompt: 'Keep the empty shuttle and the meter together. Let the route expose itself.',
+        outcome: 'The meter kept running until noon. Its impossible fare drew a line through three districts and one sealed marina gate.',
+        stamp: 'ROUTE MAPPED',
+        moves: [
+          { tool: 'Crop', instruction: 'Hold the empty shuttle and live meter together.' },
+          { tool: 'Draw', instruction: 'Pull the fare line toward the sealed marina gate.' },
+          { tool: 'Shapes', instruction: 'Box the number that makes the route impossible.' },
+        ],
+        closingLead: 'The meter draws',
+        closingEmphasis: 'a road nobody owns.',
+        closingDeck: 'The fare keeps climbing after the engine cools. Your mark turns the number into a route.',
+      },
     ],
   },
 ];
 
-const ImageEditor = lazy(() => import('@unlayer/react-image-editor'));
+type ImageEditorModule = typeof import('@unlayer/react-image-editor');
+
+let editorImportPromise: Promise<ImageEditorModule> | null = null;
+
+function loadImageEditor() {
+  editorImportPromise ??= import('@unlayer/react-image-editor');
+  return editorImportPromise;
+}
+
+function preloadImageEditor() {
+  const promise = loadImageEditor();
+  void promise.catch(() => {
+    if (editorImportPromise === promise) editorImportPromise = null;
+  });
+}
+
+const ImageEditor = lazy(loadImageEditor);
+
+type EditorBoundaryProps = {
+  children: ReactNode;
+  onFailure: () => void;
+  resetKey: number;
+};
+
+type EditorBoundaryState = {
+  failed: boolean;
+  resetKey: number;
+};
+
+class EditorBoundary extends Component<EditorBoundaryProps, EditorBoundaryState> {
+  state: EditorBoundaryState = { failed: false, resetKey: this.props.resetKey };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  static getDerivedStateFromProps(props: EditorBoundaryProps, state: EditorBoundaryState) {
+    return props.resetKey === state.resetKey ? null : { failed: false, resetKey: props.resetKey };
+  }
+
+  componentDidCatch() {
+    this.props.onFailure();
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 const EDITOR_OPTIONS = {
   theme: 'dark' as const,
@@ -149,7 +354,7 @@ const EDITOR_OPTIONS = {
         draw: true,
         text: true,
         shapes: true,
-        stickers: true,
+        stickers: false,
         frame: true,
       },
     },
@@ -177,11 +382,55 @@ function imageExtension(dataUrl: string) {
   return mimeType === 'jpeg' ? 'jpg' : mimeType ?? 'png';
 }
 
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function fallbackPlateCode(dataUrl: string) {
+  const sample = `${dataUrl.slice(0, 4096)}${dataUrl.slice(-4096)}${dataUrl.length}`;
+  let hash = 2166136261;
+
+  for (let index = 0; index < sample.length; index += 1) {
+    hash ^= sample.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return (hash >>> 0).toString(16).padStart(8, '0').toUpperCase();
+}
+
+async function inspectExport(dataUrl: string, blob: Blob) {
+  let plateCode = fallbackPlateCode(dataUrl);
+  let width: number | null = null;
+  let height: number | null = null;
+
+  try {
+    const digest = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+    plateCode = Array.from(new Uint8Array(digest).slice(0, 5), (byte) => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
+  } catch {
+    // The deterministic fallback still gives every exact export a visible press identifier.
+  }
+
+  if ('createImageBitmap' in window) {
+    try {
+      const bitmap = await createImageBitmap(blob);
+      width = bitmap.width;
+      height = bitmap.height;
+      bitmap.close();
+    } catch {
+      // Dimensions are supporting metadata; the exported data URL remains the artifact.
+    }
+  }
+
+  return { plateCode: `SL-${plateCode}`, width, height };
+}
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('desk');
   const [furthestStep, setFurthestStep] = useState(0);
   const [selectedId, setSelectedId] = useState(ASSIGNMENTS[0].id);
-  const [selectedAngleId, setSelectedAngleId] = useState(ASSIGNMENTS[0].angles[0].id);
+  const [selectedAngleId, setSelectedAngleId] = useState<string | null>(null);
   const [briefingStep, setBriefingStep] = useState<'instinct' | 'loop'>('instinct');
   const [instinct, setInstinct] = useState<Instinct | null>(null);
   const [isBriefingOpen, setIsBriefingOpen] = useState(false);
@@ -190,14 +439,20 @@ export default function Home() {
   const [activeDispatchId, setActiveDispatchId] = useState<string | null>(null);
   const [editorStatus, setEditorStatus] = useState('Loading the field plate…');
   const [editorAttempt, setEditorAttempt] = useState(0);
+  const [EditorComponent, setEditorComponent] = useState(() => ImageEditor);
   const [editorFailed, setEditorFailed] = useState(false);
   const [editorReady, setEditorReady] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const startButtonRef = useRef<HTMLButtonElement>(null);
   const briefingDialogRef = useRef<HTMLElement>(null);
   const closingDialogRef = useRef<HTMLElement>(null);
   const screenRef = useRef<HTMLElement>(null);
   const previousScreen = useRef<Screen | null>(null);
   const prefetchedPlates = useRef(new Set<string>());
+  const imageEditorRef = useRef<ImageEditorRef>(null);
+  const publishingRef = useRef(false);
+  const angleTransitionRef = useRef(false);
+  const draftRevisionRef = useRef(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -225,6 +480,19 @@ export default function Home() {
     };
   }, [isBriefingOpen, isClosingFrameOpen]);
 
+  useEffect(() => {
+    if (screen !== 'edit' || !editorReady) return;
+
+    const protectDraft = (event: BeforeUnloadEvent) => {
+      if (!imageEditorRef.current?.editor?.hasChanges()) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', protectDraft);
+    return () => window.removeEventListener('beforeunload', protectDraft);
+  }, [editorReady, screen]);
+
   const selected = useMemo(
     () => ASSIGNMENTS.find((assignment) => assignment.id === selectedId) ?? ASSIGNMENTS[0],
     [selectedId],
@@ -236,7 +504,7 @@ export default function Home() {
   );
 
   const selectedAngle = useMemo(
-    () => selected.angles.find((angle) => angle.id === selectedAngleId) ?? selected.angles[0],
+    () => selected.angles.find((angle) => angle.id === selectedAngleId) ?? null,
     [selected, selectedAngleId],
   );
 
@@ -266,10 +534,24 @@ export default function Home() {
 
   function navigateTo(nextScreen: Screen) {
     if (nextScreen === 'reveal' && !activeDispatch) return;
+    if (screen === 'edit' && nextScreen !== 'edit' && (publishingRef.current || angleTransitionRef.current)) {
+      setEditorStatus('The image desk is finishing the current operation. Leave after it settles.');
+      return;
+    }
+    if (screen === 'edit' && nextScreen !== 'edit' && imageEditorRef.current?.editor?.hasChanges()) {
+      const shouldDiscard = window.confirm('This field plate has unpublished marks. Discard them and leave the image desk?');
+      if (!shouldDiscard) return;
+    }
+    if (screen === 'edit' && nextScreen !== 'edit') draftRevisionRef.current += 1;
     if (nextScreen === 'edit' && screen !== 'edit') {
+      draftRevisionRef.current += 1;
+      setActiveDispatchId(null);
+      setSelectedAngleId(null);
       setEditorFailed(false);
       setEditorReady(false);
-      setEditorStatus('Loading the field plate…');
+      setEditorStatus('Lock an angle to open the image desk.');
+      preloadImageEditor();
+      prefetchPlate(selected.image);
     }
     setIsBriefingOpen(false);
     setIsClosingFrameOpen(false);
@@ -325,11 +607,14 @@ export default function Home() {
 
   function beginAssignment(id: string) {
     const assignment = ASSIGNMENTS.find((item) => item.id === id) ?? ASSIGNMENTS[0];
+    draftRevisionRef.current += 1;
     setSelectedId(id);
-    setSelectedAngleId(assignment.angles[0].id);
+    setSelectedAngleId(null);
+    setActiveDispatchId(null);
     setEditorFailed(false);
     setEditorReady(false);
-    setEditorStatus('Loading the field plate…');
+    setEditorStatus('Lock an angle to open the image desk.');
+    preloadImageEditor();
     prefetchPlate(assignment.image);
     advanceProgress(2);
     setScreen('edit');
@@ -362,30 +647,131 @@ export default function Home() {
   }
 
   function retryEditor() {
+    if (publishingRef.current || angleTransitionRef.current) return;
+    draftRevisionRef.current += 1;
+    editorImportPromise = null;
+    setEditorComponent(() => lazy(loadImageEditor));
     setEditorFailed(false);
     setEditorReady(false);
     setEditorStatus('Reloading the field plate…');
     setEditorAttempt((attempt) => attempt + 1);
   }
 
-  function publishDispatch(image: string) {
-    if (!image) return;
+  async function lockAngle(angleId: string) {
+    const nextAngle = selected.angles.find((angle) => angle.id === angleId);
+    if (!nextAngle || nextAngle.id === selectedAngle?.id || publishingRef.current || angleTransitionRef.current) return;
 
-    const dispatch: Dispatch = {
-      id: `${selected.id}-${Date.now()}`,
-      assignmentId: selected.id,
-      angleId: selectedAngle.id,
-      image,
-      issue: `${selected.issue}.${String(dispatches.length + 1).padStart(2, '0')}`,
-      createdAt: formatTime(),
-      angleLabel: selectedAngle.label,
-      angleOutcome: selectedAngle.outcome,
-      angleStamp: selectedAngle.stamp,
-    };
+    const editor = imageEditorRef.current?.editor;
+    if (selectedAngle && editor?.hasChanges()) {
+      const shouldDiscard = window.confirm('Changing the Angle Lock clears the marks on this plate. Discard those marks and relock the lead?');
+      if (!shouldDiscard) return;
+      angleTransitionRef.current = true;
+      setEditorStatus('Clearing the old marks before the new lead is locked…');
+      try {
+        await editor.reset(selected.image);
+      } catch {
+        setEditorFailed(true);
+        setEditorReady(false);
+        setEditorStatus('The plate could not be reset safely. Retry the image desk before making another mark.');
+        return;
+      } finally {
+        angleTransitionRef.current = false;
+      }
+      if (imageEditorRef.current?.editor !== editor) return;
+    }
 
-    setDispatches((current) => [dispatch, ...current]);
+    draftRevisionRef.current += 1;
+    setSelectedAngleId(nextAngle.id);
+    setEditorFailed(false);
+    setEditorStatus(`Angle locked: ${nextAngle.label}. Follow the three-move route, then Save.`);
+  }
+
+  function leaveEditorAfterCancel() {
+    if (publishingRef.current || angleTransitionRef.current) {
+      setEditorStatus('The image desk is finishing the current operation. Cancel after it settles.');
+      return;
+    }
+    if (imageEditorRef.current?.editor?.hasChanges()) {
+      const shouldDiscard = window.confirm('This field plate has unpublished marks. Discard them and return to the calls?');
+      if (!shouldDiscard) return;
+    }
+    draftRevisionRef.current += 1;
+    setSelectedAngleId(null);
+    setActiveDispatchId(null);
+    setEditorReady(false);
+    setEditorFailed(false);
+    setEditorStatus('Lock an angle to open the image desk.');
+    setScreen('calls');
+  }
+
+  async function publishDispatch({ dataUrl, blob }: ImageEditorSaveResult) {
+    const editor = imageEditorRef.current?.editor;
+    if (!dataUrl || !blob || !selectedAngle || !editor || publishingRef.current || angleTransitionRef.current) return;
+    const draftRevision = draftRevisionRef.current;
+    publishingRef.current = true;
+
+    // Object tools commit their active layer immediately after invoking onSave.
+    // Two frames lets that internal transaction reach the public history state.
+    await new Promise<void>((resolve) => {
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve()));
+    });
+
+    if (draftRevisionRef.current !== draftRevision || imageEditorRef.current?.editor !== editor) {
+      publishingRef.current = false;
+      return;
+    }
+
+    if (!editor.hasChanges()) {
+      publishingRef.current = false;
+      setEditorStatus('The desk needs one visible editorial move before it can print. Use Crop, Filter, Draw, Text, Shapes, or Frame.');
+      return;
+    }
+
+    setIsPublishing(true);
+    setEditorStatus('Developing the exact Unlayer export…');
+    try {
+      const exportDetails = await inspectExport(dataUrl, blob);
+      if (draftRevisionRef.current !== draftRevision || imageEditorRef.current?.editor !== editor) return;
+      const extension = imageExtension(dataUrl);
+      const dispatch: Dispatch = {
+        id: `${selected.id}-${Date.now()}`,
+        assignmentId: selected.id,
+        angleId: selectedAngle.id,
+        image: dataUrl,
+        issue: `${selected.issue}.${String(dispatches.length + 1).padStart(2, '0')}`,
+        createdAt: formatTime(),
+        angleLabel: selectedAngle.label,
+        angleOutcome: selectedAngle.outcome,
+        angleStamp: selectedAngle.stamp,
+        closingLead: selectedAngle.closingLead,
+        closingEmphasis: selectedAngle.closingEmphasis,
+        closingDeck: selectedAngle.closingDeck,
+        plateCode: exportDetails.plateCode,
+        byteSize: blob.size,
+        mimeType: blob.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+        width: exportDetails.width,
+        height: exportDetails.height,
+      };
+
+      setDispatches((current) => [dispatch, ...current]);
+      setActiveDispatchId(dispatch.id);
+      draftRevisionRef.current += 1;
+      advanceProgress(3);
+      setScreen('reveal');
+    } catch {
+      setEditorStatus('The export returned, but the press ledger could not file it. Save once more.');
+    } finally {
+      publishingRef.current = false;
+      setIsPublishing(false);
+    }
+  }
+
+  function openArchivedDispatch(dispatch: Dispatch) {
+    setSelectedId(dispatch.assignmentId);
+    setSelectedAngleId(dispatch.angleId);
     setActiveDispatchId(dispatch.id);
-    advanceProgress(3);
+    setIsBriefingOpen(false);
+    setIsClosingFrameOpen(false);
     setScreen('reveal');
   }
 
@@ -449,9 +835,9 @@ export default function Home() {
           <div className="desk-copy">
             <p className="eyebrow">Cala Verda / live case desk / 02:13</p>
             <h1 id="desk-title">The city plays dumb.<br /><em>Make the proof loud.</em></h1>
-            <p className="intro">Saltline is an original coastal-crime dispatch in a boomtown of marina money, motel alibis, and bad decisions. Your job is simple: turn one field image into the version of the night that survives.</p>
+            <p className="intro">Five late-night calls. Two defensible truths inside every field plate. Lock the lead, use React Image Editor to make it visible, and your exact saved image decides what Cala Verda wakes up believing.</p>
             <div className="run-card" aria-label="How to complete tonight's run">
-              <span className="run-card-label">Tonight&apos;s run</span>
+              <span className="run-card-label">Desk rule / two truths, one print</span>
               <ol>
                 <li><b>01</b><span>Pick one late-night case.</span></li>
                 <li><b>02</b><span>Lock a story angle, then frame and mark the evidence.</span></li>
@@ -537,22 +923,58 @@ export default function Home() {
             <p className="eyebrow">Step 03 / {selected.call} / {selected.time}</p>
             <h1 id="edit-title">{selected.title}</h1>
             <p className="edit-place">{selected.place}</p>
-            <p className="edit-prompt">“{selectedAngle.prompt}”</p>
-            <ol className="editor-moves">
-              <li><b>01</b><span className="move-copy"><strong>Frame the proof</strong>Crop toward the thing that matters.</span></li>
-              <li className="angle-lock"><b>02</b><div className="move-copy"><strong>Lock the lead</strong><div className="angle-options" role="group" aria-label="Choose the dispatch lead">{selected.angles.map((angle) => <button key={angle.id} type="button" className={angle.id === selectedAngle.id ? 'is-selected' : ''} onClick={() => setSelectedAngleId(angle.id)} aria-pressed={angle.id === selectedAngle.id}>{angle.label}</button>)}</div><small>This changes the brief, printed lead, and outcome.</small></div></li>
-              <li><b>03</b><span className="move-copy"><strong>Save to publish</strong>Make the lead visible with a line, word, shape, or imperfect signal, then Save (✓) at top right.</span></li>
-            </ol>
+            <p className={`edit-prompt ${selectedAngle ? 'is-locked' : ''}`}>“{selectedAngle?.prompt ?? selected.prompt}”</p>
+            {selectedAngle ? (
+              <>
+                <div className="angle-lock-summary">
+                  <span>ANGLE LOCK / {selectedAngle.label}</span>
+                  <div className="angle-options" role="group" aria-label="Change the dispatch angle">
+                    {selected.angles.map((angle) => (
+                      <button key={angle.id} type="button" className={angle.id === selectedAngle.id ? 'is-selected' : ''} onClick={() => lockAngle(angle.id)} aria-pressed={angle.id === selectedAngle.id}>{angle.label}</button>
+                    ))}
+                  </div>
+                </div>
+                <ol className="editor-moves tool-route" aria-label={`${selectedAngle.label} suggested tool route`}>
+                  {selectedAngle.moves.map((move, index) => (
+                    <li key={`${move.tool}-${index}`}><b>0{index + 1}</b><span className="move-copy"><strong>{move.tool}</strong>{move.instruction}</span></li>
+                  ))}
+                </ol>
+              </>
+            ) : (
+              <div className="angle-lock-note">
+                <b>ANGLE LOCK REQUIRED</b>
+                <p>Choose what this image proves. The lead changes the edit route, the printed stamp, and what happens next.</p>
+              </div>
+            )}
             <p className="editor-status" role="status">{editorStatus}</p>
             {editorFailed && <button className="retry-button" onClick={retryEditor}>Retry editor →</button>}
           </aside>
           <div className="editor-stage">
             <div className="editor-stage-bar">
-              <span><i className="live-dot" /> STEP 03 / FIELD PLATE / ORIGINAL ART</span>
-              <span>SAVE = PUBLISH</span>
+              <span><i className="live-dot" /> UNLAYER REACT IMAGE EDITOR / FULL-RES FIELD PLATE</span>
+              <span>{selectedAngle ? 'SAVE = PUBLISH' : 'ANGLE LOCK REQUIRED'}</span>
             </div>
-            <div className={`editor-shell ${editorReady ? 'is-ready' : ''}`} aria-busy={!editorReady && !editorFailed}>
-              {!editorReady && (
+            <div className={`editor-shell ${editorReady ? 'is-ready' : ''} ${selectedAngle ? 'is-angle-locked' : 'is-angle-gate'}`} aria-busy={Boolean(selectedAngle) && !editorReady && !editorFailed}>
+              {!selectedAngle && (
+                <div className="angle-gate">
+                  <img className="angle-gate-image" src={selected.preview} width="768" height="512" decoding="async" alt="" />
+                  <div className="angle-gate-panel">
+                    <p className="eyebrow">The same plate can tell two true stories.</p>
+                    <h2>Lock the lead<br /><em>before you mark it.</em></h2>
+                    <div className="angle-gate-options" role="group" aria-label="Choose the dispatch angle">
+                      {selected.angles.map((angle, index) => (
+                        <button key={angle.id} type="button" onClick={() => lockAngle(angle.id)}>
+                          <span>ANGLE 0{index + 1}</span>
+                          <strong>{angle.label}</strong>
+                          <small>{angle.prompt}</small>
+                          <i>{angle.moves.map((move) => move.tool).join(' + ')}</i>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {selectedAngle && !editorReady && (
                 <div className="editor-loader" aria-hidden="true">
                   <img src={selected.preview} width="768" height="512" decoding="async" alt="" />
                   <div className="editor-loader-copy">
@@ -562,35 +984,47 @@ export default function Home() {
                   </div>
                 </div>
               )}
-              <Suspense fallback={null}>
-                <ImageEditor
-                  key={`${selected.id}-${editorAttempt}`}
-                  image={selected.image}
-                  minHeight="min(58vh, 660px)"
-                  options={EDITOR_OPTIONS}
-                  onLoad={() => {
-                    setEditorFailed(false);
-                    setEditorReady(true);
-                    setEditorStatus('The plate is live. Make a case, not a collage.');
-                  }}
-                  onLoadError={() => {
+              {selectedAngle && (
+                <EditorBoundary
+                  resetKey={editorAttempt}
+                  onFailure={() => {
                     setEditorFailed(true);
                     setEditorReady(false);
-                    setEditorStatus('The field plate did not load. Retry the editor or return to the cases.');
+                    setEditorStatus('The image desk module was interrupted. Retry when the connection is ready.');
                   }}
-                  onError={() => {
-                    setEditorFailed(true);
-                    setEditorReady(false);
-                    setEditorStatus('The image desk could not open. Retry the editor when the connection is ready.');
-                  }}
-                  onSave={({ dataUrl }) => publishDispatch(dataUrl)}
-                  onCancel={() => setEditorStatus('The press is still waiting. Your field plate stays on the desk.')}
-                />
-              </Suspense>
+                >
+                  <Suspense fallback={null}>
+                    <EditorComponent
+                      ref={imageEditorRef}
+                      key={`${selected.id}-${editorAttempt}`}
+                      image={selected.image}
+                      minHeight="min(64vh, 720px)"
+                      options={EDITOR_OPTIONS}
+                      onLoad={() => {
+                        setEditorFailed(false);
+                        setEditorReady(true);
+                        setEditorStatus('Image desk connected. Make the locked lead visible, then Save.');
+                      }}
+                      onLoadError={() => {
+                        setEditorFailed(true);
+                        setEditorReady(false);
+                        setEditorStatus('The field plate did not load. Retry the editor or return to the cases.');
+                      }}
+                      onError={() => {
+                        setEditorFailed(true);
+                        setEditorReady(false);
+                        setEditorStatus('The image desk could not open. Retry the editor when the connection is ready.');
+                      }}
+                      onSave={(result) => void publishDispatch(result)}
+                      onCancel={leaveEditorAfterCancel}
+                    />
+                  </Suspense>
+                </EditorBoundary>
+              )}
             </div>
             <div className="editor-actions">
-              <p>Your single required move: add the signal you want, then click <strong>Save (✓)</strong> in the editor&apos;s top-right corner. There is no publish bypass.</p>
-              <span className="save-cue" aria-hidden="true">SAVE ↑</span>
+              <p>{selectedAngle ? <>Make at least one visible editorial move, then click <strong>Save (✓)</strong> in Unlayer&apos;s top-right corner. That exact export is the only route to print.</> : <>Choose an <strong>Angle Lock</strong> above. The full-resolution plate and editor module are already being prepared.</>}</p>
+              {selectedAngle && <span className="save-cue" aria-hidden="true">{isPublishing ? 'PRINTING…' : 'SAVE ↑'}</span>}
             </div>
           </div>
         </section>
@@ -603,20 +1037,31 @@ export default function Home() {
             <h1 id="reveal-title">Your edit is<br /><em>on the record.</em></h1>
             <p>{activeDispatch.angleOutcome}</p>
             <p className="reveal-angle">ANGLE LOCKED / {activeDispatch.angleLabel}</p>
-            <div className="source-plate">
-              <img src={activeAssignment.preview} width="768" height="512" decoding="async" alt={`Original field plate for ${activeAssignment.title}`} />
-              <span><b>Original field plate</b>Your saved edit is the dispatch beside it.</span>
+            <div className="proof-pair" aria-label="Original field plate compared with the exact saved editor export">
+              <figure>
+                <img src={activeAssignment.preview} width="768" height="512" decoding="async" alt={`Original field plate for ${activeAssignment.title}`} />
+                <figcaption>01 / FIELD SOURCE</figcaption>
+              </figure>
+              <span aria-hidden="true">→</span>
+              <figure>
+                <img src={activeDispatch.image} decoding="async" alt={`Small proof of the exact saved ${activeAssignment.title} export`} />
+                <figcaption>02 / UNLAYER EXPORT</figcaption>
+              </figure>
             </div>
-            <p className="reveal-proof">This is the exact flattened image returned by React Image Editor. Saltline&apos;s paper and stamp sit around it; they never replace or crop it.</p>
+            <p className="reveal-proof">The image at right is the exact flattened <b>dataUrl</b> returned by React Image Editor. Saltline&apos;s paper and stamp sit around it; they never replace or crop it.</p>
+            <dl className="export-ledger">
+              <div><dt>PLATE</dt><dd>{activeDispatch.plateCode}</dd></div>
+              <div><dt>EXPORT</dt><dd>{activeDispatch.width && activeDispatch.height ? `${activeDispatch.width} × ${activeDispatch.height}` : 'FLATTENED'} / {activeDispatch.mimeType.replace('image/', '').toUpperCase()} / {formatBytes(activeDispatch.byteSize)}</dd></div>
+            </dl>
             <div className="reveal-actions">
               <button className="ink-button" onClick={() => { advanceProgress(4); setScreen('archive'); setIsClosingFrameOpen(true); }}>Close the edition <span>→</span></button>
               <button className="text-button" onClick={downloadDispatch}>Download plate ↓</button>
             </div>
           </div>
           <article className={`printed-dispatch accent-${activeAssignment.accent}`}>
-            <div className="dispatch-masthead"><span>SALTLINE / NIGHT EDITION</span><b>{activeDispatch.issue}</b></div>
+            <div className="dispatch-masthead"><span>SALTLINE / NIGHT EDITION / {activeDispatch.plateCode}</span><b>{activeDispatch.issue}</b></div>
             <div className="dispatch-image"><img src={activeDispatch.image} decoding="async" alt={`Edited dispatch for ${activeAssignment.title}`} /></div>
-            <div className="dispatch-caption"><span>{activeAssignment.place}</span><span>{activeDispatch.angleStamp}. THE FIELD DESK DID NOT ALTER THE FACTS. ONLY THE LIGHT.</span></div>
+            <div className="dispatch-caption"><span>{activeAssignment.place}</span><span>{activeDispatch.angleStamp}. EXACT UNLAYER EXPORT ON FILE.</span></div>
             <div className="dispatch-stamp">{activeDispatch.angleStamp}<br />{activeDispatch.createdAt}</div>
           </article>
         </section>
@@ -640,16 +1085,13 @@ export default function Home() {
                     key={dispatch.id}
                     className={`archive-item accent-${assignment.accent}`}
                     style={{ '--turn': `${index % 2 ? 1.8 : -1.5}deg` } as React.CSSProperties}
-                    onClick={() => {
-                      setSelectedId(dispatch.assignmentId);
-                      setSelectedAngleId(dispatch.angleId);
-                      setActiveDispatchId(dispatch.id);
-                      navigateTo('reveal');
-                    }}
+                    onClick={() => openArchivedDispatch(dispatch)}
                   >
                     <img src={dispatch.image} loading="lazy" decoding="async" alt={`Open saved ${assignment.title} dispatch`} />
                     <span>{dispatch.issue} / {assignment.title}</span>
                     <i>{dispatch.angleStamp} / {dispatch.createdAt}</i>
+                    <small>{dispatch.angleOutcome}</small>
+                    <b>{dispatch.plateCode}</b>
                   </button>
                 );
               })}
@@ -720,10 +1162,10 @@ export default function Home() {
           onKeyDown={(event) => handleDialogKeyDown(event, closeClosingFrame)}
         >
           <article className="closing-sheet">
-            <div className="closing-masthead"><span>ISSUE 04 / CLOSING FRAME</span><span>{activeDispatch.angleStamp}</span></div>
+            <div className="closing-masthead"><span>ISSUE 04 / CLOSING FRAME / {activeDispatch.plateCode}</span><span>{activeDispatch.angleStamp}</span></div>
             <div className="closing-panels">
               <figure className="closing-image"><img src={activeDispatch.image} decoding="async" alt={`Saved closing frame for ${activeAssignment.title}`} /><figcaption>{activeAssignment.place} / {activeDispatch.createdAt}</figcaption></figure>
-              <div className="closing-copy"><p className="eyebrow">The print is dry. The city is not.</p><h2 id="closing-title">First light finds<br /><em>the same lies.</em></h2><p>Your saved plate is now one of the stories Cala Verda has to wake up with.</p><div className="closing-sound">TIDE / TRAFFIC / PAPER</div></div>
+              <div className="closing-copy"><p className="eyebrow">The print is dry. The city is not.</p><h2 id="closing-title">{activeDispatch.closingLead}<br /><em>{activeDispatch.closingEmphasis}</em></h2><p>{activeDispatch.closingDeck}</p><div className="closing-sound">TIDE / TRAFFIC / PAPER</div></div>
             </div>
             <div className="closing-footer"><span>NOT A HERO. A WITNESS WITH A PRINT RUN.</span><button className="ink-button" onClick={closeClosingFrame}>File the night <span>→</span></button></div>
           </article>

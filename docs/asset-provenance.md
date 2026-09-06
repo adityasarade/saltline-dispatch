@@ -33,8 +33,8 @@ The following display-only files were resized and WebP-encoded from the correspo
 
 | Asset | Origin | License / use basis | Notes |
 | --- | --- | --- | --- |
-| `docs/screenshots/*.webp` | Captured from the final local production build on 5 September 2026 | Team-created product documentation | Seven judge-facing states at 1280 × 720 and 390 × 844: landing, guide, calls, editor, publish, closing frame, and archive. |
-| `public/saltline-dispatch.gif` | Rebuilt from the final local product captures on 5 September 2026 | Team-created product demonstration | Shows the five-screen journey and both overlays. The edited export shown in publish, closing, and archive is the same saved artifact. |
+| `docs/screenshots/*.webp` | Captured from the final local build on 6 September 2026 | Team-created product documentation | Eight judge-facing states at 1280 × 720 and 390 × 844: landing, guide, calls, explicit Angle Lock, editor, publish, closing frame, and archive. |
+| `public/saltline-dispatch.gif` | Rebuilt from the final local product captures on 6 September 2026 | Team-created product demonstration | Shows the five-screen journey and both overlays. The edited export shown in publish, closing, and archive is the same saved artifact. |
 | UI textures and marks | Authored in `app/globals.css` | Team-created source | CSS paper grain, shapes, typography treatment, and wordmark are original code. Grain stays behind editor and saved-image pixels. |
 | Unlayer React Image Editor | `@unlayer/react-image-editor` 1.0.2 | MIT licensed dependency | See the upstream repository license and notice. The application installs and uses the package without copying its source. |
 
