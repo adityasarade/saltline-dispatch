@@ -12,6 +12,16 @@ Five late-night calls arrive at the night desk. Every field plate contains two d
 
 ![Saltline Dispatch journey](public/saltline-dispatch.gif)
 
+## For judges: the 60-second route
+
+1. Select **Start tonight's run**, choose either desk instinct, and open the recommended call.
+2. At **Angle Lock**, choose which of two defensible truths the field plate should prove.
+3. Make a visible edit with the suggested React Image Editor tools, then use the editor's own **Save (✓)** control.
+4. Compare the source and saved plate in the reveal, continue through the angle-specific closing frame, and open the issue wall.
+5. Replay or download the archived dispatch. The plate code and exact saved pixels remain identical across every payoff state.
+
+The key judging moment is the transition from Angle Lock to the editor and then to the printed reveal. It demonstrates that the editor is the story mechanic and the saved export is the artifact, not an optional utility attached to the experience.
+
 ## The 3 to 5 minute loop
 
 1. **Landing desk and first-shift guide:** Select **Start tonight's run** to open the two-step guide. Choose whether to follow a person or an object, then open the recommended call or browse all five.
@@ -123,3 +133,4 @@ All assignment artwork and interface marks were created for this project. See [a
 - [React Image Editor docs](https://docs.unlayer.com/builder/latest/images/image-editor)
 - [Build With React Image Editor Challenge FAQ](https://unlayer.notion.site/Build-With-Image-Editor-Challenge-FAQ-3cf0ceb4c8e180309d91cd730811ebd1?pvs=73)
 - [Official challenge submission form](https://docs.google.com/forms/d/e/1FAIpQLScfzk0EYvIZb9AuqI3A33H8dIk8WdlWPFNDz5S7TsaPrlVzVw/viewform?usp=send_form)
+- [Submission kit with form answers and launch posts](docs/submission-kit.md)
