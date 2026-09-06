@@ -99,9 +99,14 @@ Open the local URL printed by the development server. React Image Editor loads i
 ```bash
 npm run lint
 npm run build
+npm run build:vercel
 ```
 
 The competition-readiness pass also exercises cold loads at 390 × 844 and 1280 × 720, horizontal overflow, both guide branches, explicit Angle Lock, untouched-Save rejection, real edits through all six enabled tools, editor loading and recovery states, exact reveal-to-closing-to-archive identity, stale-artifact prevention, archive replay, and modal keyboard behavior.
+
+## Vercel deployment
+
+The public competition build runs at [saltline-dispatch.vercel.app](https://saltline-dispatch.vercel.app). `vercel.json` selects the native Next.js production build through `npm run build:vercel`. The existing Vinext build remains available for local and private fallback compatibility.
 
 ## Stack
 
