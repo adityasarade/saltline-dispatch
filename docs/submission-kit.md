@@ -2,17 +2,16 @@
 
 Prepared on 6 September 2026 for Unlayer's Build With React Image Editor Challenge.
 
-Do not submit the form or publish the launch post until the live deployment has been made public and verified in a signed-out browser. The current live site is owner-only and returns 401 to anonymous visitors.
+The competition build is publicly deployed on Vercel and available to anonymous visitors.
 
 ## Final launch order
 
-1. Approve public access for the existing Saltline deployment.
-2. Verify the live URL in a signed-out browser on desktop and mobile.
-3. Star the [Unlayer React Image Editor repository](https://github.com/unlayer/react-image-editor) from the submitting GitHub account.
-4. Publish one of the prepared social posts below. Attach `public/saltline-dispatch.gif` or `docs/screenshots/publish-1280x720.webp`.
-5. Copy the social post URL.
-6. Complete the [official submission form](https://docs.google.com/forms/d/e/1FAIpQLScfzk0EYvIZb9AuqI3A33H8dIk8WdlWPFNDz5S7TsaPrlVzVw/viewform?usp=send_form) with the answers below.
-7. Save the form receipt, public live URL, repository URL, and social post URL.
+1. Verify the Vercel live URL in a signed-out browser on desktop and mobile.
+2. Star the [Unlayer React Image Editor repository](https://github.com/unlayer/react-image-editor) from the submitting GitHub account.
+3. Publish one of the prepared social posts below. Attach `public/saltline-dispatch.gif` or `docs/screenshots/publish-1280x720.webp`.
+4. Copy the social post URL.
+5. Complete the [official submission form](https://docs.google.com/forms/d/e/1FAIpQLScfzk0EYvIZb9AuqI3A33H8dIk8WdlWPFNDz5S7TsaPrlVzVw/viewform?usp=send_form) with the answers below.
+6. Save the form receipt, public live URL, repository URL, and social post URL.
 
 Deadline: 24 September 2026 at 23:59 UTC, which is 25 September 2026 at 05:29 IST.
 
@@ -32,9 +31,7 @@ https://github.com/adityasarade/saltline-dispatch
 
 ### What is the live link to your project?
 
-https://saltline-dispatch.aditya-sarade2003.chatgpt.site
-
-Only use this answer after anonymous access returns 200 rather than 401.
+https://saltline-dispatch.vercel.app
 
 ### Social post link
 
@@ -72,7 +69,7 @@ Built Saltline Dispatch for @unlayer's #BuiltWithImageEditor challenge.
 
 Pick a coastal-crime call, lock one of two truths, edit the evidence, and print the exact saved image into the issue wall.
 
-Live: https://saltline-dispatch.aditya-sarade2003.chatgpt.site
+Live: https://saltline-dispatch.vercel.app
 
 Recommended attachment: `public/saltline-dispatch.gif`.
 
@@ -86,7 +83,7 @@ The editor is not an optional tool inside the project. An untouched plate cannot
 
 The complete experience includes five original full-resolution field plates, ten narrative outcomes, responsive display assets, protected editor state, export identity metadata, and a public source and provenance trail.
 
-Try it: https://saltline-dispatch.aditya-sarade2003.chatgpt.site
+Try it: https://saltline-dispatch.vercel.app
 
 Source: https://github.com/adityasarade/saltline-dispatch
 

@@ -16,7 +16,7 @@ The announced deadline is 24 September 2026 at 23:59 UTC, which is 25 September 
 | Provide a complete public GitHub repository | The public repository contains the application, lockfile, README, provenance ledger, screenshots, and demonstration GIF. | Ready |
 | Explain the full experience in the README | The README names the official inspiration requirement, explains the five-screen journey, documents exact Save data flow, and discloses originality boundaries. | Ready |
 | Use assets created, owned, or used with permission | Every visual has a recorded origin and use basis in `docs/asset-provenance.md`. No leaked or unauthorized material is used. | Ready |
-| Deploy a publicly accessible live site | The current production deployment is intentionally owner-only. Anonymous requests return 401. | **Blocked pending owner approval** |
+| Deploy a publicly accessible live site | The production build is publicly available at `https://saltline-dispatch.vercel.app`. Anonymous requests return 200. | Ready |
 | Support the React Image Editor repository | The project links and credits the upstream repository. Because the FAQ does not define “support,” the safest entrant action is to star the upstream repository from the submitting GitHub account. | Entrant action pending |
 | Submit the official form before the deadline | The form is currently open. It requires project name, email, public GitHub URL, live URL, project/editor explanation, and confirmation checkboxes. | Entrant action pending |
 
@@ -28,7 +28,7 @@ The announced deadline is 24 September 2026 at 23:59 UTC, which is 25 September 
 | Visual execution | Original paper-and-ink art direction, five coherent field plates, full-bleed desk, physical print reveal, closing frame, and issue wall. | Third-party editor chrome remains visibly Unlayer, which is intentional proof of integration. |
 | Meaningful editor use | No preselected angle, no untouched publish, no alternate publish control, and the exact returned `dataUrl` survives every payoff state. | The editor runtime is CDN-delivered, so the live editing step still depends on network access. |
 | Experience | Recommended first call, explicit Angle Lock, three-tool routes, protected dirty drafts, measured loader, angle-specific consequence, and replayable archive. | A 3 to 5 minute interaction is longer than a static demo, so the README GIF must communicate the loop quickly. |
-| Overall execution | Responsive display derivatives, same-origin full-resolution sources, accessible dimensions, loading and failure states, export metadata, public source, and provenance. | Public deployment and final form submission remain external launch actions. |
+| Overall execution | Responsive display derivatives, same-origin full-resolution sources, accessible dimensions, loading and failure states, export metadata, public source, provenance, and a public Vercel deployment. | Final social post and form submission remain entrant actions. |
 
 ## Integrity invariants
 
@@ -46,8 +46,7 @@ The announced deadline is 24 September 2026 at 23:59 UTC, which is 25 September 
 ## Final entrant checklist
 
 - [x] Commit and push the verified final source, documentation, screenshots, GIF, and provenance ledger.
-- [x] Deploy that exact commit with the existing owner-only access setting.
-- [ ] Approve public access for the existing live deployment, then verify the live URL anonymously.
+- [x] Deploy the competition build publicly on Vercel and verify the live URL anonymously.
 - [ ] Star the [React Image Editor repository](https://github.com/unlayer/react-image-editor) from the submitting GitHub account.
 - [x] Verify the public repository default branch includes the final commit, README, GIF, screenshots, and provenance ledger.
 - [ ] Optional but recommended: publish the prepared X or LinkedIn launch post with `#BuiltWithImageEditor`, then add its URL to the form.

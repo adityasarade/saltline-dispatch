@@ -6,9 +6,9 @@ Saltline Dispatch is an original late-night coastal editorial micro-experience b
 
 Five late-night calls arrive at the night desk. Every field plate contains two defensible truths. You choose which truth survives by locking an editorial angle, following its three-tool reporting route in React Image Editor, and saving the exact result into the night edition.
 
-[Live preview](https://saltline-dispatch.aditya-sarade2003.chatgpt.site) · [Public source](https://github.com/adityasarade/saltline-dispatch)
+[Live preview](https://saltline-dispatch.vercel.app) · [Public source](https://github.com/adityasarade/saltline-dispatch)
 
-> Access note: the live preview remains owner-only until public launch is explicitly approved. The repository is public.
+> The competition build is publicly deployed on Vercel. The repository is public.
 
 ![Saltline Dispatch journey](public/saltline-dispatch.gif)
 
@@ -105,7 +105,8 @@ The competition-readiness pass also exercises cold loads at 390 × 844 and 1280 
 
 ## Stack
 
-- React 19, TypeScript, Vinext, and OpenAI Sites
+- React 19, TypeScript, and Next.js 16 on Vercel
+- Vinext and OpenAI Sites compatibility retained for local and private fallback builds
 - Unlayer React Image Editor 1.0.2
 - Local React state for the current session archive
 - Same-origin 1536 × 1024 PNG editor sources

@@ -1,7 +1,15 @@
 import type { Metadata } from 'next';
 import './globals.css';
 
+const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+const metadataBase = new URL(
+  productionHost
+    ? `https://${productionHost}`
+    : 'https://saltline-dispatch.vercel.app',
+);
+
 export const metadata: Metadata = {
+  metadataBase,
   title: 'Saltline Dispatch: the 2:13 AM edition',
   description: 'An original late-night coastal editorial micro-experience built with Unlayer React Image Editor.',
   openGraph: {
