@@ -45,11 +45,11 @@ The announced deadline is 24 September 2026 at 23:59 UTC, which is 25 September 
 
 ## Final entrant checklist
 
-- [ ] Commit and push the verified final source, documentation, screenshots, GIF, and provenance ledger.
-- [ ] Deploy that exact commit with the existing owner-only access setting.
+- [x] Commit and push the verified final source, documentation, screenshots, GIF, and provenance ledger.
+- [x] Deploy that exact commit with the existing owner-only access setting.
 - [ ] Approve public access for the existing live deployment, then verify the live URL anonymously.
 - [ ] Star the [React Image Editor repository](https://github.com/unlayer/react-image-editor) from the submitting GitHub account.
-- [ ] Verify the public repository default branch includes the final commit, README, GIF, screenshots, and provenance ledger.
+- [x] Verify the public repository default branch includes the final commit, README, GIF, screenshots, and provenance ledger.
 - [ ] Submit the [official challenge form](https://docs.google.com/forms/d/e/1FAIpQLScfzk0EYvIZb9AuqI3A33H8dIk8WdlWPFNDz5S7TsaPrlVzVw/viewform?usp=send_form) before 24 September 2026 at 23:59 UTC.
 - [ ] Preserve the form receipt and final live URL.
 
