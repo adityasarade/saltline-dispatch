@@ -25,6 +25,7 @@ button:focus-visible { outline: 3px solid var(--coral); outline-offset: 4px; }
 
 .topbar { height: 78px; padding: 0 clamp(22px, 4vw, 70px); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); position: relative; z-index: 5; }
 .wordmark, .archive-count, .process button, .back-button, .text-button, .call-card-select, .retry-button, .overlay-close { border: 0; background: transparent; color: inherit; cursor: pointer; }
+.text-button:disabled { cursor: wait; opacity: .58; }
 .wordmark { display: flex; align-items: baseline; gap: 8px; font-size: 18px; font-weight: 900; letter-spacing: -0.07em; }
 .wordmark small { font-size: 8px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
 .wordmark-mark { width: 22px; height: 18px; display: inline-flex; align-items: end; gap: 2px; transform: skewX(-12deg); }

@@ -426,6 +426,60 @@ async function inspectExport(dataUrl: string, blob: Blob) {
   return { plateCode: `SL-${plateCode}`, width, height };
 }
 
+function loadCanvasImage(source: string) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Image failed to load'));
+    image.src = source;
+  });
+}
+
+function drawContainedImage(
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+) {
+  const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+  const drawWidth = image.naturalWidth * scale;
+  const drawHeight = image.naturalHeight * scale;
+  context.fillStyle = '#121617';
+  context.fillRect(x, y, width, height);
+  context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+}
+
+function drawWrappedText(
+  context: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number,
+  maxLines: number,
+) {
+  const words = text.split(/\s+/);
+  let line = '';
+  let lineIndex = 0;
+
+  for (const word of words) {
+    const nextLine = line ? `${line} ${word}` : word;
+    if (context.measureText(nextLine).width <= maxWidth) {
+      line = nextLine;
+      continue;
+    }
+
+    context.fillText(line, x, y + lineIndex * lineHeight);
+    line = word;
+    lineIndex += 1;
+    if (lineIndex >= maxLines - 1) break;
+  }
+
+  if (line && lineIndex < maxLines) context.fillText(line, x, y + lineIndex * lineHeight);
+}
+
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('desk');
   const [furthestStep, setFurthestStep] = useState(0);
@@ -632,9 +686,7 @@ export default function Home() {
   }
 
   function startTonightRun() {
-    setInstinct(null);
-    setBriefingStep('instinct');
-    setIsBriefingOpen(true);
+    browseFieldCalls();
   }
 
   function chooseInstinct(nextInstinct: Instinct) {
@@ -784,6 +836,98 @@ export default function Home() {
     link.click();
   }
 
+  async function downloadFrontPage() {
+    if (!activeDispatch) return;
+    setIsPublishing(true);
+    try {
+      const image = await loadCanvasImage(activeDispatch.image);
+      const canvas = document.createElement('canvas');
+      canvas.width = 1600;
+      canvas.height = 2000;
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Canvas unavailable');
+
+      context.fillStyle = '#e9e2d1';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.strokeStyle = 'rgba(23,26,24,.12)';
+      context.lineWidth = 1;
+      for (let x = 64; x < canvas.width; x += 32) {
+        context.beginPath();
+        context.moveTo(x, 0);
+        context.lineTo(x, canvas.height);
+        context.stroke();
+      }
+
+      context.fillStyle = '#171a18';
+      context.fillRect(0, 0, canvas.width, 210);
+      context.fillStyle = '#f0eadc';
+      context.font = '900 82px Arial Black, Arial, sans-serif';
+      context.fillText('SALTLINE', 88, 122);
+      context.font = '22px Arial, sans-serif';
+      context.fillText('NIGHT EDITION / CALA VERDA', 92, 166);
+      context.fillStyle = '#e4543f';
+      context.fillRect(1225, 0, 375, 210);
+      context.fillStyle = '#171a18';
+      context.font = '900 28px Arial Black, Arial, sans-serif';
+      context.fillText(activeDispatch.issue, 1292, 92);
+      context.font = '19px ui-monospace, monospace';
+      context.fillText(activeDispatch.createdAt, 1292, 132);
+
+      context.fillStyle = '#a63b2d';
+      context.font = '700 22px Arial, sans-serif';
+      context.fillText(`${activeAssignment.place.toUpperCase()} / ${activeDispatch.plateCode}`, 90, 292);
+      context.fillStyle = '#171a18';
+      context.font = '400 104px Georgia, Times New Roman, serif';
+      drawWrappedText(context, activeDispatch.closingLead, 88, 405, 1320, 108, 2);
+      context.fillStyle = '#a63b2d';
+      context.font = 'italic 104px Georgia, Times New Roman, serif';
+      drawWrappedText(context, activeDispatch.closingEmphasis, 88, 610, 1320, 108, 2);
+
+      drawContainedImage(context, image, 88, 765, 1424, 950);
+      context.strokeStyle = '#171a18';
+      context.lineWidth = 5;
+      context.strokeRect(85, 762, 1430, 956);
+
+      context.fillStyle = '#171a18';
+      context.font = '700 20px Arial, sans-serif';
+      context.fillText(`${activeDispatch.angleStamp} / EXACT UNLAYER EXPORT ON FILE`, 88, 1772);
+      context.font = '400 27px Georgia, Times New Roman, serif';
+      drawWrappedText(context, activeDispatch.closingDeck, 88, 1834, 1160, 38, 3);
+      context.strokeStyle = '#a63b2d';
+      context.lineWidth = 6;
+      context.strokeRect(1290, 1765, 220, 142);
+      context.save();
+      context.translate(1400, 1835);
+      context.rotate(-0.07);
+      context.fillStyle = '#a63b2d';
+      context.textAlign = 'center';
+      context.font = '900 22px Arial Black, Arial, sans-serif';
+      context.fillText(activeDispatch.angleStamp, 0, 0, 184);
+      context.font = '17px ui-monospace, monospace';
+      context.fillText(activeDispatch.createdAt, 0, 34);
+      context.restore();
+      context.fillStyle = '#171a18';
+      context.font = '16px ui-monospace, monospace';
+      context.fillText('YOUR EDIT. YOUR ANGLE. ON THE RECORD.', 88, 1950);
+      context.textAlign = 'right';
+      context.fillText(activeDispatch.plateCode, 1512, 1950);
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((result) => result ? resolve(result) : reject(new Error('PNG export failed')), 'image/png');
+      });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = `saltline-${activeAssignment.id}-${activeDispatch.issue.toLowerCase().replace(/\s+/g, '-')}-front-page.png`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch {
+      window.alert('The front page could not be developed. Your exact plate is still safe and can be downloaded.');
+    } finally {
+      setIsPublishing(false);
+    }
+  }
+
   const currentStep = steps.findIndex((step) => step.id === screen);
 
   return (
@@ -846,7 +990,7 @@ export default function Home() {
             </div>
             <div className="desk-actions">
               <button ref={startButtonRef} className="ink-button" onClick={startTonightRun}>Start tonight&apos;s run <span>→</span></button>
-              <span className="edition-note">5 cases<br />1 saved dispatch</span>
+              <span className="edition-note">5 cases<br />1 print to make</span>
             </div>
           </div>
           <div className="desk-plate" aria-hidden="true">
@@ -1055,7 +1199,8 @@ export default function Home() {
             </dl>
             <div className="reveal-actions">
               <button className="ink-button" onClick={() => { advanceProgress(4); setScreen('archive'); setIsClosingFrameOpen(true); }}>Close the edition <span>→</span></button>
-              <button className="text-button" onClick={downloadDispatch}>Download plate ↓</button>
+              <button className="text-button" disabled={isPublishing} onClick={() => void downloadFrontPage()}>{isPublishing ? 'Developing front page…' : 'Download front page ↓'}</button>
+              <button className="text-button" onClick={downloadDispatch}>Keep exact plate ↓</button>
             </div>
           </div>
           <article className={`printed-dispatch accent-${activeAssignment.accent}`}>

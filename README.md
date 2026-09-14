@@ -14,23 +14,23 @@ Five late-night calls arrive at the night desk. Every field plate contains two d
 
 ## For judges: the 60-second route
 
-1. Select **Start tonight's run**, choose either desk instinct, and open the recommended call.
+1. Select **Start tonight's run** and open any of the five field calls.
 2. At **Angle Lock**, choose which of two defensible truths the field plate should prove.
 3. Make a visible edit with the suggested React Image Editor tools, then use the editor's own **Save (✓)** control.
-4. Compare the source and saved plate in the reveal, continue through the angle-specific closing frame, and open the issue wall.
-5. Replay or download the archived dispatch. The plate code and exact saved pixels remain identical across every payoff state.
+4. Compare the source and saved plate in the reveal, download the personalized front page, continue through the angle-specific closing frame, and open the issue wall.
+5. Replay or download the archived dispatch. The plate code and exact saved pixels remain identical across every payoff state and artifact.
 
 The key judging moment is the transition from Angle Lock to the editor and then to the printed reveal. It demonstrates that the editor is the story mechanic and the saved export is the artifact, not an optional utility attached to the experience.
 
 ## The 3 to 5 minute loop
 
-1. **Landing desk and first-shift guide:** Select **Start tonight's run** to open the two-step guide. Choose whether to follow a person or an object, then open the recommended call or browse all five.
+1. **Landing desk:** Select **Start tonight's run** to reach all five field calls immediately. The three-step rule card on the landing page carries the orientation without an extra modal.
 2. **Field calls:** Choose exactly one of five original calls: Wake Tax, Room 08, After the Rain, Undertow, or Off the Meter.
 3. **Angle Lock and editor:** Every call offers two editorial leads. No angle is silently selected. Lock one, then use its custom three-tool route to work the original 1536 × 1024 same-origin field plate with crop, filters, draw, text, shapes, or frames. General-purpose stickers are deliberately disabled.
 4. **Publish:** Select the editor's own **Save (✓)** control. Its returned `dataUrl` is the only publish path.
-5. **Reveal, closing frame, and archive:** The exact flattened `dataUrl` appears in the publish reveal, the angle-specific closing-frame overlay, and the session archive. Saltline's paper, stamp, and caption sit outside the exported pixels. Download uses that same export and its returned image format.
+5. **Reveal, closing frame, and archive:** The exact flattened `dataUrl` appears in the publish reveal, the downloadable 1600 × 2000 front page, the angle-specific closing-frame overlay, and the session archive. Saltline's paper, stamp, and caption sit outside the exported pixels. The raw-plate download uses that same export and its returned image format.
 
-The five screens are landing desk, field calls, editor, publish, and archive. The first-shift guide and closing frame are overlays inside that flow. Removing React Image Editor removes the visitor-authored dispatch and breaks the central loop.
+The five screens are landing desk, field calls, editor, publish, and archive. The closing frame is an overlay inside that flow. Removing React Image Editor removes the visitor-authored dispatch and breaks the central loop.
 
 ## Original coastal-crime direction
 
@@ -40,7 +40,7 @@ Cala Verda is a boomtown of marina money, roadside motels, carnival glare, ferry
 
 Saltline uses [`@unlayer/react-image-editor`](https://github.com/unlayer/react-image-editor) 1.0.2 as the in-world publishing desk. Every assignment begins with a same-origin original field plate. The visitor can crop, filter, draw, add text, place shapes, and frame the image. Angle Lock gives that freeform editing a story purpose: each of ten possible leads changes the brief, suggested tools, outcome, stamp, and final closing line.
 
-The editor's `onSave` result is the source of truth. An untouched Save is rejected through the editor instance's `hasChanges()` state, so the visitor must make an editor-detected move. The interface asks for that move to be clearly visible. The returned `dataUrl` is stored directly in local React state and rendered as the reveal, closing frame, archive item, and download. There is no alternate upload, mock artifact, or publish bypass. Saved-image pixels are shown with `object-fit: contain` and without CSS filters, grain overlays, captions, or stamps on top of them.
+The editor's `onSave` result is the source of truth. An untouched Save is rejected through the editor instance's `hasChanges()` state, so the visitor must make an editor-detected move. The interface asks for that move to be clearly visible. The returned `dataUrl` is stored directly in local React state and rendered as the reveal, closing frame, archive item, raw download, and front-page artifact. There is no alternate upload, mock artifact, or publish bypass. Saved-image pixels are shown with `object-fit: contain` and without CSS filters, grain overlays, captions, or stamps on top of them.
 
 The same Save callback also uses Unlayer's returned `blob` to report honest export dimensions, MIME type, and encoded size. A short SHA-256-derived plate code, with a deterministic local fallback where Web Crypto is unavailable, makes the artifact's identity legible across reveal, closing frame, and archive without changing its pixels. Starting a new draft clears the active published artifact, and replaying the archive uses a dedicated path, so a previous dispatch can never masquerade as the new one.
 
@@ -67,9 +67,7 @@ The 768 px hero reduces encoded weight by 95.22%, while the five call previews r
 
 ## Screenshots
 
-| Night desk | First-shift guide |
-| --- | --- |
-| ![Saltline landing desk at 1280 by 720](docs/screenshots/landing-1280x720.webp) | ![Saltline first-shift guide at 390 by 844](docs/screenshots/guide-390x844.webp) |
+![Saltline landing desk at 1280 by 720](docs/screenshots/landing-1280x720.webp)
 
 | Five field calls | Explicit Angle Lock |
 | --- | --- |
@@ -102,7 +100,7 @@ npm run build
 npm run build:vercel
 ```
 
-The competition-readiness pass also exercises cold loads at 390 × 844 and 1280 × 720, horizontal overflow, both guide branches, explicit Angle Lock, untouched-Save rejection, real edits through all six enabled tools, editor loading and recovery states, exact reveal-to-closing-to-archive identity, stale-artifact prevention, archive replay, and modal keyboard behavior.
+The competition-readiness pass also exercises cold loads at 390 × 844 and 1280 × 720, horizontal overflow, direct landing-to-calls navigation, explicit Angle Lock, untouched-Save rejection, real edits through all six enabled tools, editor loading and recovery states, exact reveal-to-front-page-to-closing-to-archive identity, stale-artifact prevention, and archive replay.
 
 ## Vercel deployment
 

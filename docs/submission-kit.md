@@ -1,8 +1,10 @@
 # Saltline Dispatch submission kit
 
-Prepared on 6 September 2026 for Unlayer's Build With React Image Editor Challenge.
+Prepared on 14 September 2026 for Unlayer's Build With React Image Editor Challenge.
 
 The competition build is publicly deployed on Vercel and available to anonymous visitors.
+
+Technical readiness was reverified locally on 14 September: the redundant guide was removed from the primary route, a personalized front-page download was added, browser acceptance passed at desktop and mobile widths, and both production build paths plus lint pass. Publish the resulting commit before performing the entrant-account actions below.
 
 ## Final launch order
 
