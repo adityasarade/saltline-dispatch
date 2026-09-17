@@ -16,13 +16,16 @@ Built for Unlayer's Build With React Image Editor Challenge.
 
 ## For judges: the 60-second route
 
-1. Select **Start tonight's run** and open any of the five field calls.
+1. Select **Start tonight's run** and open any of the five field calls. The editor is three clicks from a cold load.
 2. At **Angle Lock**, choose which of two defensible truths the field plate should prove.
-3. Mark the subject your angle named — draw on it, caption it, crop to it — then use the editor's own **Save (✓)** control. An untouched Save is refused.
-4. Read the **lead call** and the **press call** in the reveal. The desk has measured whether your marks landed on the thing you locked, and what shape you cut the plate to. Both readings are shown with the numbers they came from.
+3. Mark the subject your angle named — **MARK UP** on it, **CAPTION** it, **FRAME** to it. Watch the **live sample** card beside the canvas: it flips between *on the lead* and *off the lead* as you work, and tells you which front-page layout your current crop would produce. Then use the editor's own **Save (✓)** control. An untouched Save is refused.
+4. Read the **lead call**, the **press call** and the **city heat** charge in the reveal. The desk has measured whether your marks landed on the thing you locked, what shape you cut the plate to, and what printing it cost you. Every reading is shown with the numbers it came from.
 5. Download the front page. Its layout is chosen by your crop: a wide cut runs as a banner, a tight cut as a tall column. Then continue through the closing frame and open the issue wall.
+6. **Now do it again, and print the *opposing* angle on the same case.** The paper contradicts itself in print, the wall stamps both plates, and the city heat jumps. Reload the page: the wall, the heat and the contradiction are all still there.
 
 **If you only have thirty seconds:** lock an angle, scribble once directly on the subject it names, and Save. Then do the same case again and scribble on the sky instead. Same case, same angle, two different printed verdicts — from your pixels, not from a menu.
+
+**If you have two minutes:** print both angles of one case. That is the thing only this concept can do.
 
 The key judging moment is Angle Lock → editor → printed reveal. The editor is the story mechanic and the saved export is the artifact, not a utility bolted to the side of one.
 
@@ -32,13 +35,20 @@ The key judging moment is Angle Lock → editor → printed reveal. The editor i
 2. **Field calls:** Choose exactly one of five original calls: Wake Tax, Room 08, After the Rain, Undertow, or Off the Meter. The desk phone answers as the case opens.
 3. **Angle Lock and editor:** Every call offers two editorial leads. No angle is silently selected. Lock one, then use its custom three-tool route to work the original 1536 × 1024 same-origin field plate with crop, filters, draw, text, shapes, or frames. General-purpose stickers are deliberately disabled.
 4. **Publish:** Select the editor's own **Save (✓)** control. Its returned `dataUrl` is the only publish path. The night press run covers the real measurement work, then hands back a press read: your crop and brightness decide whether the page runs your plate as a banner, a lead, or a column.
-5. **Reveal, closing frame, and archive:** The exact flattened `dataUrl` appears in the publish reveal, the downloadable 1600 × 2000 front page, the angle-specific closing-frame overlay, and the session archive. Saltline's paper, stamp, and caption sit outside the exported pixels. The raw-plate download uses that same export and its returned image format.
+5. **Reveal, closing frame, and archive:** The exact flattened `dataUrl` appears in the publish reveal, the downloadable 1600 × 2000 front page, the angle-specific closing-frame overlay, and the issue wall. Saltline's paper, stamp, and caption sit outside the exported pixels. The raw-plate download uses that same export and its returned image format.
+6. **The night carries on:** the issue wall and the city heat are kept in the browser, so a second visit continues the same edition rather than restarting it. The masthead strip, the briefing, the wall and the closing frame all change as the heat rises, and there is an in-world button to pulp the run and set a clean edition.
 
-The five screens are landing desk, field calls, editor, publish, and archive. The closing frame is an overlay inside that flow. Removing React Image Editor removes the visitor-authored dispatch and breaks the central loop.
+The five screens are landing desk, field calls, editor, publish, and issue wall. The closing frame and the standing sheet are overlays inside that flow. Removing React Image Editor removes the visitor-authored dispatch and breaks the central loop.
 
 ## Original coastal-crime direction
 
-Cala Verda is a boomtown of marina money, roadside motels, carnival glare, ferry lanes, and disposable alibis. Saltline borrows only the challenge's broad tension between coastal spectacle and after-hours consequence. Its cases, places, copy, interface, and visual system are original. It does not recreate franchise scenes or use franchise characters, logos, maps, screenshots, trailers, leaked material, audio, or copied interface styling.
+Cala Verda is a boomtown of marina money, roadside motels, carnival glare, ferry lanes, and disposable alibis.
+
+**What is borrowed is the register, and only the register:** a sun-bleached coastal boom town where crime is an industry; the satirical small-ad voice of businesses that are obviously fronts; and the pressure of attention — the idea that the more you do, the more the place notices, and that noticing has consequences. That last one is the direct ancestor of **CITY HEAT**, reinterpreted as a newsroom rather than a police response: an ink gauge on a masthead, a switchboard that starts ringing, a law firm at the loading door, an edition the desk is told to hold. There are no stars, no wanted level, and no police HUD anywhere in this build.
+
+**Everything visible is original.** The city, the five cases, the ten angles, all narrative copy, the classifieds on the back page, the heat tiers and their notices, the fictional law firm, the interface, the typography, the palette and every image were made for this project. Saltline does not recreate franchise scenes and uses no franchise characters, place names, brands, logos, maps, screenshots, trailers, leaked material, audio, or copied interface styling. `npm run check:content` sweeps every line of authored copy against a list of 49 franchise and real-brand terms and fails the build on a hit, so this is checked rather than asserted.
+
+Saltline is an unofficial, independent contest entry and is not affiliated with or endorsed by Rockstar Games, Take-Two Interactive, or any other publisher.
 
 ## Why React Image Editor is core
 
@@ -69,6 +79,48 @@ Both percentages appear in the export ledger next to the printed plate. Two visi
 
 **What this deliberately does not do:** it does not understand your edit. It cannot tell a caption from a crop mark, it has no opinion about whether your mark is any good, and it knows nothing about the subject beyond a rectangle. It compares pixels in a box against pixels in the same box, reports both percentages, and says which way it read them. The logic is pure and covered by 16 tests in [`tests/lead-proof.test.mjs`](tests/lead-proof.test.mjs).
 
+### CITY HEAT: the night remembers you
+
+Saltline used to reset on refresh, which meant a judge who played twice got the same game twice. It does not any more.
+
+The issue wall, the heat the desk has drawn, which leads and which measured moves you keep leaning on, and every time the paper has contradicted itself are kept in the browser under **one versioned key**, `saltline.desk.v1`. The logic is a pure module — no clock, no crypto, no DOM — in [`lib/city-heat.ts`](lib/city-heat.ts), covered by 42 tests in [`tests/city-heat.test.mjs`](tests/city-heat.test.mjs).
+
+**Heat is charged for facts the desk already measured and already shows you**, itemised on the reveal:
+
+| Charge | When | Cost |
+| --- | --- | --- |
+| A plate went to print | Every dispatch | **+8** |
+| That lead was already on the wall | Relocking a lead you have printed | **+5**, then +8, +11 … |
+| The desk reused a move it has run before | Per repeated *measured* move | **+3**, then +5, +7 … |
+| The paper printed the opposing angle on this case | A contradiction | **+18** |
+
+A "move" here is not a guess about which buttons you pressed — React Image Editor does not report that, and guessing would be exactly the claim this project refuses to make elsewhere. It is one of the three readings already printed in your export ledger: how you **cut** the plate (banner / lead / column), how you **graded** it (pressed dark / straight / pushed for detail), and whether your **marks** landed on the locked lead. Reuse means the measurement came back the same, which is a fact, and the desk says so in those terms: *"The desk has run three plates off the full-frame lead. Someone has noticed."*
+
+**Contradiction is the sharpest consequence, and it only exists here.** Every Saltline case has two defensible truths. Print one, then print the other, and the paper has contradicted itself in print, under its own masthead, in the same hour. Both plates are stamped **CONTRADICTED IN PRINT** on the wall, the case is named in a "THE PAPER AGAINST ITSELF" ledger with both angles and both filing times, and it costs more than any repeat.
+
+**Four named tiers, and the heat changes what you see, not just a number:**
+
+| Tier | From | Masthead strip | What appears |
+| --- | --- | --- | --- |
+| **WIRE QUIET** | 0 | `NO ACCOUNTS. NO ALIBIS.` | The quiet wire. Nothing pinned. |
+| **SWITCHBOARD WARM** | 22 | `SWITCHBOARD: TWO CALLS, NO NAMES.` | The briefing and the wall report a car idling across from the loading door. |
+| **LETTERS ARRIVING** | 48 | `THREE LETTERS BEFORE DAWN. NONE OF THEM FRIENDLY.` | A **legal notice** from Hallow, Prine & Deschamp — Harbour Counsel is pinned to the issue wall. |
+| **EDITION HELD** | 78 | `HOLD THE EDITION. THE ORDER CAME FROM UPSTAIRS.` | The desk is told to hold the edition, a hold order is pinned, and **one plate already on the wall is spiked** — stamped, greyed, and no longer openable. |
+
+Each tier owns its masthead strip, its briefing line, its wall copy and the line appended to the closing frame. The **standing sheet**, reachable from the masthead strip or the wall, shows the itemised standing, the leads you keep coming back to, the moves the desk keeps running, what the desk last said, and where the night is being kept. It is also where you **set a clean edition**, which erases the stored key and starts an empty wall.
+
+**Storage is defensive by design.** Every access goes through a small injected-storage seam with a try/catch around it, and a private window or blocked site data degrades to an in-memory session with the desk saying so plainly — never an error and never a crash. A corrupt, truncated or future-schema payload is discarded rather than patched into a half state. Because a flattened export is 250 KB to 2 MB as a base64 data URL against roughly 5 MB of origin quota, the archive box keeps the **four most recent negatives** and every older record keeps its full ledger line with an honest `NEGATIVE NOT ON FILE` in place of its pixels; if the quota is hit anyway, the write ladder gives up negatives one at a time before it gives up the record. A worst-case 2.9 MB payload measured 5.8 ms to serialise and 6.9 ms to write, during the screen transition.
+
+### The live sample: the desk answers while you work
+
+The lead and press readings used to arrive only on Save, so the screen where a visitor spends most of their time said nothing back. A compact card now sits beside the canvas and updates while you edit: whether your marks are currently landing on the locked lead, and which front-page layout your current crop would produce.
+
+It polls the mounted editor's own `getImage()` on an 800 ms interval, **gated on `hasChanges()`** and on the snapshot actually differing from the last one measured, so an untouched plate costs one boolean per tick and nothing else. One in-flight sample never overlaps the next, and the interval is torn down when the editor unmounts or the screen changes.
+
+There is **no second measurement implementation**. The lead reading goes through `lead-proof.ts`'s own data-URL seam into the same `measureLead` on the same 256 px grid with the same `CHANGE_THRESHOLD`, `WORKED_SHARE` and `ASPECT_TOLERANCE`; the layout comes from `press-read.ts`'s own `classifyPlay`. The composition is one function in [`lib/live-read.ts`](lib/live-read.ts).
+
+It is a **sample, not the record**, and the card says so: the authoritative reading is still the one taken from the Save result. Anything it cannot measure honestly it declines to report — a decode failure, a browser that will not release pixels, or the known trap where `getImage()` returns the *source URL* rather than an export before anything has been drawn. In every one of those cases the card simply is not there.
+
 ### The press read: your crop changes the page
 
 Locking an angle decides what the story says. The edit itself decides how the story runs.
@@ -89,6 +141,26 @@ Saltline deliberately does **not** claim to understand your edit. It does not re
 ### Desk sound
 
 The night desk has three short noises and no soundtrack: a call landing when you open a case, the press feeding a sheet when you Save, and a stamp coming down when the dispatch is filed. They are synthesized with WebAudio in [`lib/desk-sound.ts`](lib/desk-sound.ts), so the project ships no audio files and needs no audio licence. Sound is off until you turn it on from the topbar.
+
+### The back page
+
+The issue wall carries **Cala Verda classifieds**: ten original small ads for businesses that are obviously fronts, three at a time, turning over as the wall fills.
+
+> **NACRE BAY BOAT CLUB** — Memberships available. Moorings, fuel, and a lane of open water at any hour. Discretion included.
+>
+> **MORROW COURT NOTARY** — Open 02:00 to 05:00. Signatures witnessed. Memories not. Two forms of identification accepted, neither of them checked.
+>
+> **OFFICE OF THE HARBOURMASTER** — Tonight's log is unavailable. Tomorrow's log is also unavailable. Enquiries regarding the log should be submitted in writing to the log.
+
+Several of them are the same fronts the night's cases run through, because the paper sells ad space to the people it investigates in the same edition. That is the joke and it is also the premise. All ten are in [`lib/classifieds.ts`](lib/classifieds.ts), all invented for this project, and all swept by the originality check in `npm run check:content`.
+
+## In-world tool names
+
+The editor rail reads in Saltline's language through the documented `translations` option — `image_editor.tools.*` — so the dock says **FRAME**, **GRADE**, **MARK UP**, **CAPTION**, **BOXES** and **BORDER** instead of Crop, Filter, Draw, Text, Shapes and Frame. Each label is kept short enough to survive the rail's fixed width.
+
+Two deliberate choices around it. **Save keeps its own name**, because the brief rail, this README and Unlayer's own documentation all say Save and the one control the whole journey depends on is not the place to be clever. And `translations` is set **once, before mount**, alongside `theme` and `locale` — the three keys the wrapper applies through `updateOptions` rather than a remount. `features` is on the remount path, so it is fixed and never touched: changing it would destroy the visitor's work.
+
+[`lib/assignments.ts`](lib/assignments.ts) still stores Unlayer's own tool identities, so `npm run check:content` can keep proving that every authored route points at a tool that is actually enabled. `TOOL_NAMES` in [components/saltline/editor-stage.tsx](components/saltline/editor-stage.tsx) is the single place those identities become the words on the rail, so the brief and the dock cannot drift apart.
 
 ## Performance and image delivery
 
@@ -111,6 +183,14 @@ Per-asset encodings, sizes, and encoder settings are in [asset provenance](docs/
 | Exact saved reveal and press read | Session archive |
 | --- | --- |
 | ![The published Saltline dispatch showing the exact saved export, the press read, and the export ledger, at 1280 by 720](docs/screenshots/publish-1280x720.webp) | ![Saltline session archive at 390 by 844](docs/screenshots/archive-390x844.webp) |
+
+| The live sample beside the canvas | The desk standing sheet |
+| --- | --- |
+| ![The Saltline editor mid-edit with the live sample card reading ON THE LEAD, at 1280 by 720](docs/screenshots/live-read-1280x720.webp) | ![The Saltline desk standing sheet showing the LETTERS ARRIVING heat tier, the itemised standing and the moves the desk keeps running, at 1280 by 720](docs/screenshots/standing-sheet-1280x720.webp) |
+
+The issue wall under city heat, with the pinned legal notice, the paper's own contradiction on the record, two plates stamped CONTRADICTED IN PRINT, and the classifieds on the back page:
+
+![The Saltline issue wall at the LETTERS ARRIVING tier, showing the city heat panel, a pinned legal notice, the contradiction ledger, three plates with two stamped CONTRADICTED IN PRINT, and the Cala Verda classifieds](docs/screenshots/city-heat-wall-1280x1688.webp)
 
 The closing frame at phone width:
 
@@ -137,11 +217,11 @@ npm run build
 npm run build:vercel
 ```
 
-`npm run test` runs 45 unit tests with Node's built-in runner and needs Node 22.18+ for TypeScript import stripping. They cover the press-read play and tone classifiers, the lead-proof verdicts and their measured thresholds, the in-world clock including its wrap past midnight, and the export-metadata helpers — boundaries, determinism and the disclosed ledger lines included.
+`npm run test` runs 87 unit tests with Node's built-in runner and needs Node 22.18+ for TypeScript import stripping. They cover the press-read play and tone classifiers, the lead-proof verdicts and their measured thresholds, the city-heat tier boundaries, repeat escalation, contradiction detection, determinism and its behaviour on corrupt, absent and over-quota stored data, the in-world clock including its wrap past midnight, and the export-metadata helpers — boundaries, determinism and the disclosed ledger lines included.
 
-`npm run check:content` walks the authored content and fails the build if any case is incomplete: a missing plate or preview, an angle without a three-move route, a route naming a tool that is not enabled, a lead without an authored region, or a display derivative that has leaked into the editor path. A broken image in front of a judge is the one failure no unit test catches.
+`npm run check:content` walks the authored content and fails the build if any case is incomplete: a missing plate or preview, an angle without a three-move route, a route naming a tool that is not enabled, a lead without an authored region, or a display derivative that has leaked into the editor path. It also sweeps every line of authored copy — the cases, the angles, the classifieds, the heat tiers and their notices — against 49 franchise and real-brand terms, and checks that the back page is complete and its rotation deterministic. A broken image in front of a judge is the one failure no unit test catches.
 
-Everything else was **verified by hand** in a real browser, not automated: cold loads at 390 × 844 and 1280 × 720, horizontal overflow, direct landing-to-calls navigation, explicit Angle Lock, untouched-Save rejection, real edits through all six enabled tools, editor loading and recovery states, exact reveal-to-front-page-to-closing-to-archive identity, stale-artifact prevention, and archive replay.
+Everything else is **verified in a real browser**, driven end to end: cold loads at 390 × 844 and 1280 × 720, horizontal overflow on every screen, the editor reachable in three clicks, explicit Angle Lock, the live sample flipping between on-lead and off-lead from where the stroke actually lands, untouched-Save rejection, real edits through the enabled tools, persistence across a reload, contradiction detection and its stamps, escalation through the heat tiers and the copy that changes with them, the spiked plate at the top tier, a clean edition, a blocked-`localStorage` session, the CDN-failure retry and its terminal state, and exact reveal-to-front-page-to-closing-to-wall identity — with zero console and page errors across the run.
 
 ## Vercel deployment
 
@@ -153,15 +233,15 @@ The public competition build runs at [saltline-dispatch.vercel.app](https://salt
 - Vinext and OpenAI Sites compatibility retained for local and private fallback builds
 - Unlayer React Image Editor 1.0.2
 - Barlow Condensed (SIL OFL 1.1) self-hosted through `next/font/google` for the uppercase desk furniture, with Georgia for the display serif
-- Local React state for the current session archive
+- React state for the live journey, with the issue wall and city heat persisted to `localStorage` under one versioned key
 - Same-origin 1536 × 1024 PNG editor sources
 - Responsive WebP derivatives for display-only surfaces
 
 ## Originality and assets
 
-Saltline is an unofficial, independent contest entry. It is not affiliated with or endorsed by any game publisher. It uses no franchise characters, logos, screenshots, trailers, leaked material, anime characters, real-brand marks, or unlicensed assets.
+Saltline is an unofficial, independent contest entry. It is not affiliated with or endorsed by any game publisher. It uses no franchise characters, place names, logos, screenshots, trailers, leaked material, anime characters, real-brand marks, or unlicensed assets.
 
-All assignment artwork and interface marks were created for this project. See [asset provenance](docs/asset-provenance.md).
+All assignment artwork, interface marks and written copy — including the classifieds, the heat tiers and the fictional Cala Verda businesses and law firm they name — were created for this project. `npm run check:content` enforces that automatically. See [asset provenance](docs/asset-provenance.md).
 
 ## Repository notes
 
@@ -169,12 +249,15 @@ All assignment artwork and interface marks were created for this project. See [a
 - The React Image Editor implementation is visible in [components/saltline/editor-stage.tsx](components/saltline/editor-stage.tsx): the code-split module load, the enabled tool dock, the error boundary, the Angle Lock gate, the loading plate, and the `<ImageEditor>` mount with every callback it uses.
 - The five cases, their ten angles and all narrative copy are data in [lib/assignments.ts](lib/assignments.ts), so the story can be read without reading the app.
 - What the desk can say about a saved export — the plate code, the extension, the size, and the in-world filing time — is a set of pure functions in [lib/export-meta.ts](lib/export-meta.ts), covered by [tests/export-meta.test.mjs](tests/export-meta.test.mjs).
+- The cross-session consequence system — the issue wall, city heat, repeat escalation, contradiction detection, the four tiers, serialising and the storage seam — is a pure module in [lib/city-heat.ts](lib/city-heat.ts) with no clock, crypto or DOM in it, covered by [tests/city-heat.test.mjs](tests/city-heat.test.mjs).
+- The live readout beside the editor is [lib/live-read.ts](lib/live-read.ts) (composition only, no thresholds of its own) and [components/saltline/live-read-card.tsx](components/saltline/live-read-card.tsx) (the gated poll).
+- The Cala Verda classifieds are data in [lib/classifieds.ts](lib/classifieds.ts).
 - [app/page.tsx](app/page.tsx) is the screen flow and state machine only.
 - [app/globals.css](app/globals.css) is grouped in the order a visitor meets it, one declaration per line, with one block per breakpoint.
 - Canonical field plates remain in `public/images` for same-origin canvas compatibility.
 - Display derivatives live in `public/images/display` and are never passed to the editor.
-- The project deliberately keeps five assignments and five screens. The closing frame is an overlay inside that flow.
-- There is no account system, backend, analytics, external API, or generated-story dependency.
+- The project deliberately keeps five assignments and five screens. The closing frame and the standing sheet are overlays inside that flow.
+- There is no account system, backend, analytics, external API, or generated-story dependency. The only stored state is one `localStorage` key on the visitor's own machine, which the standing sheet discloses and can erase.
 - The evidence-based requirement matrix and final entrant actions are in [the competition audit](docs/competition-audit.md).
 
 ## Challenge links

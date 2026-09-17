@@ -110,6 +110,31 @@ export function pressLedgerLine(read: PressRead): string {
 }
 
 /**
+ * Decoded pixel dimensions of an export.
+ *
+ * The aspect ratio is the only input `classifyPlay` needs, so the live
+ * readout beside the editor uses this rather than the full `inspectExport`
+ * (which also hashes the bytes for a plate code it does not need yet).
+ * Returns null when the browser will not decode, in which case the live card
+ * says nothing about the layout.
+ */
+export async function measureGeometry(blob: Blob): Promise<{ width: number; height: number } | null> {
+  if (typeof document === 'undefined' || !('createImageBitmap' in globalThis)) return null;
+
+  let bitmap: ImageBitmap | null = null;
+
+  try {
+    bitmap = await createImageBitmap(blob);
+    if (!bitmap.width || !bitmap.height) return null;
+    return { width: bitmap.width, height: bitmap.height };
+  } catch {
+    return null;
+  } finally {
+    bitmap?.close();
+  }
+}
+
+/**
  * Mean relative luminance of a decoded export, sampled on a small offscreen
  * canvas so the measurement costs the same for any export size. Returns null
  * when the browser will not give us pixels, in which case the press falls

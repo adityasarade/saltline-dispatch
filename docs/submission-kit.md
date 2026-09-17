@@ -65,13 +65,19 @@ Add a personal website, X profile, or LinkedIn profile on separate lines if you 
 
 ### Anything else you'd like us to know?
 
-Saltline is built around a strict artifact-integrity rule: the saved Unlayer export is never reconstructed, restyled, or replaced. The same returned image pixels and plate code persist through reveal, closing frame, archive, replay, and download. The public repository includes the full source, performance measurements, asset provenance, responsive screenshots, and an eight-state demonstration GIF. Every visual and story element was created for this project.
+Saltline is built around a strict artifact-integrity rule: the saved Unlayer export is never reconstructed, restyled, or replaced. The same returned image pixels and plate code persist through reveal, closing frame, issue wall, replay, and download.
+
+Two things are worth trying twice. A **live sample** card beside the canvas polls the editor's own `getImage()` while you work — gated on `hasChanges()` — and flips between *on the lead* and *off the lead* depending on where your marks actually land, then names the front-page layout your current crop would produce; the authoritative reading is still taken on Save, and the card says so. And **CITY HEAT** keeps the issue wall and the desk's standing between visits under one versioned browser key, so a second visit continues the same night: reusing a lead or a measured move costs more each time, four named tiers change the masthead, the briefing, the wall and the closing frame, and printing the *opposing* angle on a case you already printed is treated as the paper contradicting itself in print — stamped on both plates, named in a ledger, and the most expensive thing you can do.
+
+The public repository includes the full source, performance measurements, asset provenance, responsive screenshots, and a demonstration GIF. Every visual and story element, including the satirical Cala Verda classifieds on the back page, was created for this project, and an automated content check sweeps all authored copy against franchise and real-brand terms.
 
 ## X launch post
 
 Built Saltline Dispatch for @unlayer's #BuiltWithImageEditor challenge.
 
 Pick a coastal-crime call, lock one of two truths, edit the evidence, and print the exact saved image into the issue wall.
+
+Print the other truth on the same case and the paper contradicts itself. The city notices. It remembers next visit.
 
 Live: https://saltline-dispatch.vercel.app
 
@@ -85,7 +91,11 @@ It is an original coastal-crime editorial experience set in Cala Verda. Five lat
 
 The editor is not an optional tool inside the project. An untouched plate cannot publish. The exact image returned by Unlayer's Save action becomes the printed reveal, the angle-specific closing frame, the issue-wall artifact, the replay, and the download.
 
-The complete experience includes five original full-resolution field plates, ten narrative outcomes, responsive display assets, protected editor state, export identity metadata, and a public source and provenance trail.
+The edit answers back while you make it: a live sample card beside the canvas measures whether your marks are landing on the subject your angle claimed, and which front-page layout your crop would produce.
+
+And the night carries over. The issue wall and the desk's standing are kept between visits, so reusing the same lead costs more each time — and if you print both of a case's two defensible truths, the paper has contradicted itself in print. It is stamped on both plates, and the city stops being polite about it.
+
+The complete experience includes five original full-resolution field plates, ten narrative outcomes, four named consequence tiers, satirical classifieds for a corrupt boom town, responsive display assets, protected editor state, export identity metadata, and a public source and provenance trail.
 
 Try it: https://saltline-dispatch.vercel.app
 

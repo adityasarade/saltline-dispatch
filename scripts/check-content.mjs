@@ -14,6 +14,8 @@ import path from 'node:path';
 
 import { ASSIGNMENTS } from '../lib/assignments.ts';
 import { LEAD_REGIONS, leadRegion } from '../lib/lead-regions.ts';
+import { CLASSIFIEDS, classifiedsFor } from '../lib/classifieds.ts';
+import { HEAT_TIERS } from '../lib/city-heat.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -150,6 +152,108 @@ for (const key of Object.keys(LEAD_REGIONS)) {
   }
 }
 
+// --------------------------------------------------------------------------
+// Franchise and real-brand similarity check.
+//
+// The competition's asset rule is that everything shipped is the entrant's
+// own or licensed. Saltline's whole world is invented, and this is the
+// automated proof: every line of authored copy - the five cases, the ten
+// angles, the classifieds, the heat tiers and their notices - is swept for
+// franchise names, franchise character names, franchise place names, leak
+// vocabulary and the real-brand marks those satirical fronts are most likely
+// to drift into. A hit fails the build rather than reaching a judge.
+// --------------------------------------------------------------------------
+
+const FORBIDDEN = [
+  // Franchise and publisher marks.
+  'rockstar', 'take-two', 'take two', 'grand theft', 'gta', 'red dead', 'max payne',
+  // Franchise settings and places.
+  'vice city', 'liberty city', 'san andreas', 'los santos', 'las venturas', 'san fierro',
+  'leonida', 'vinewood', 'blaine county', 'paleto', 'sandy shores', 'grove street',
+  // Franchise characters.
+  'lucia caminos', 'jason duval', 'niko bellic', 'trevor philips', 'franklin clinton',
+  'michael de santa', 'carl johnson', 'tommy vercetti', 'claude speed',
+  // Franchise in-fiction brands, which a satirical back page could drift onto.
+  'ammu-nation', 'ammunation', 'cluckin bell', 'sprunk', 'lifeinvader', 'bawsaq',
+  'maibatsu', 'pisswasser', 'burger shot', 'los santos customs', 'weazel news',
+  // Leak vocabulary.
+  'leaked build', 'leaked footage', 'datamine',
+  // Real brands the fictional fronts must not land on.
+  'hertz', 'avis', 'marriott', 'hilton', 'western union', 'moneygram', 'fedex',
+];
+
+const COPY_SOURCES = [];
+
+for (const assignment of ASSIGNMENTS) {
+  for (const field of ['title', 'deck', 'prompt', 'outcome', 'place', 'call', 'issue']) {
+    COPY_SOURCES.push([`case ${assignment.id}.${field}`, String(assignment[field] ?? '')]);
+  }
+  for (const angle of assignment.angles ?? []) {
+    for (const field of ['label', 'prompt', 'outcome', 'stamp', 'closingLead', 'closingEmphasis', 'closingDeck']) {
+      COPY_SOURCES.push([`angle ${assignment.id}/${angle.id}.${field}`, String(angle[field] ?? '')]);
+    }
+    for (const move of angle.moves ?? []) {
+      COPY_SOURCES.push([`move ${assignment.id}/${angle.id}/${move.tool}`, String(move.instruction ?? '')]);
+    }
+  }
+}
+
+for (const ad of CLASSIFIEDS) {
+  COPY_SOURCES.push([`classified "${ad.name}"`, `${ad.name} ${ad.copy} ${ad.rate}`]);
+}
+
+for (const tier of HEAT_TIERS) {
+  COPY_SOURCES.push([
+    `heat tier ${tier.id}`,
+    `${tier.label} ${tier.masthead} ${tier.deskLine} ${tier.closingLine} ${tier.notice ? `${tier.notice.from} ${tier.notice.body}` : ''}`,
+  ]);
+}
+
+for (const [where, copy] of COPY_SOURCES) {
+  const haystack = copy.toLowerCase();
+  for (const token of FORBIDDEN) {
+    if (haystack.includes(token)) {
+      fail(`${where} contains the forbidden term "${token}" — every name in Saltline must be original.`);
+    }
+  }
+}
+
+// The back page itself has to be complete and non-repeating.
+if (CLASSIFIEDS.length < 6) {
+  fail(`the classifieds need at least 6 entries to read as a back page, found ${CLASSIFIEDS.length}.`);
+}
+
+const adNames = new Set();
+for (const ad of CLASSIFIEDS) {
+  for (const field of ['name', 'copy', 'rate']) {
+    if (!ad?.[field]) fail(`classified "${ad?.name ?? '(no name)'}": missing "${field}".`);
+  }
+  if (adNames.has(ad.name)) fail(`classified "${ad.name}": duplicate advertiser.`);
+  adNames.add(ad.name);
+  if ((ad.copy ?? '').length < 40) {
+    fail(`classified "${ad.name}": copy is too short to carry a joke (${(ad.copy ?? '').length} characters).`);
+  }
+}
+
+// The selection helper has to be deterministic and never repeat within a draw.
+for (const seed of [0, 1, 2, 3, 7, 40, -5, Number.NaN]) {
+  const drawn = classifiedsFor(seed, 3);
+  if (drawn.length !== 3) fail(`classifiedsFor(${seed}) returned ${drawn.length} ads, expected 3.`);
+  if (new Set(drawn.map((ad) => ad.name)).size !== drawn.length) {
+    fail(`classifiedsFor(${seed}) repeated an advertiser inside one draw.`);
+  }
+  if (JSON.stringify(drawn) !== JSON.stringify(classifiedsFor(seed, 3))) {
+    fail(`classifiedsFor(${seed}) is not deterministic.`);
+  }
+}
+
+// Every heat tier needs the copy the interface renders for it.
+for (const tier of HEAT_TIERS) {
+  for (const field of ['id', 'label', 'masthead', 'deskLine', 'closingLine']) {
+    if (!tier?.[field]) fail(`heat tier ${tier?.id ?? '(no id)'}: missing "${field}".`);
+  }
+}
+
 // Media the README promises a judge.
 for (const asset of [
   '/saltline-dispatch.gif',
@@ -165,6 +269,7 @@ if (issues.size !== 1) {
 
 notes.push(
   `${ASSIGNMENTS.length} cases in ${[...issues][0]}, ${Object.keys(LEAD_REGIONS).length} leads, all plates, previews and README media present.`,
+  `${CLASSIFIEDS.length} classifieds and ${HEAT_TIERS.length} heat tiers swept against ${FORBIDDEN.length} franchise and real-brand terms, no hits.`,
 );
 
 if (failures.length > 0) {

@@ -12,7 +12,7 @@ import {
   type RefObject,
 } from 'react';
 import type { ImageEditorRef, ImageEditorSaveResult } from '@unlayer/react-image-editor';
-import type { Angle, Assignment } from '@/lib/assignments';
+import type { Angle, Assignment, ToolCue } from '@/lib/assignments';
 
 // ---------------------------------------------------------------------------
 // The React Image Editor integration.
@@ -55,11 +55,35 @@ export function resetImageEditorModule() {
   editorImportPromise = null;
 }
 
+// The rail in Saltline's language.
+//
+// `translations` is one of the three keys the wrapper applies through
+// updateOptions rather than a remount (theme, locale, translations - see
+// ImageEditor.tsx's updatableKey), so renaming the dock is safe and cannot
+// cost the visitor their work. `features` is on the remount path and is
+// therefore set once, below, and never touched again.
+//
+// Save keeps its own name on purpose. The brief rail, the README, and
+// Unlayer's own documentation all say "Save", and the one control the whole
+// journey depends on is not the place to be clever.
+const EDITOR_TRANSLATIONS = {
+  en: {
+    'image_editor.tools.crop': 'FRAME',
+    'image_editor.tools.filter': 'GRADE',
+    'image_editor.tools.draw': 'MARK UP',
+    'image_editor.tools.text': 'CAPTION',
+    'image_editor.tools.shapes': 'BOXES',
+    'image_editor.tools.frame': 'BORDER',
+  },
+};
+
 // The tool dock Saltline exposes. Crop, Filter, Draw, Text, Shapes, and Frame
 // are the six moves the assignments' tool routes are written against; resize
 // and stickers are off because neither can carry an editorial claim.
 export const EDITOR_OPTIONS = {
   theme: 'dark' as const,
+  locale: 'en' as const,
+  translations: EDITOR_TRANSLATIONS,
   features: {
     imageEditor: {
       dock: 'left' as const,
@@ -75,6 +99,24 @@ export const EDITOR_OPTIONS = {
       },
     },
   },
+};
+
+/**
+ * The in-world name for each enabled tool.
+ *
+ * lib/assignments.ts keeps Unlayer's own tool identities, so
+ * scripts/check-content.mjs can still prove that every authored route points
+ * at a tool that is actually enabled. This is the single place those
+ * identities are turned into the words on the rail, so the brief and the dock
+ * can never drift apart.
+ */
+export const TOOL_NAMES: Record<ToolCue['tool'], string> = {
+  Crop: 'FRAME',
+  Filter: 'GRADE',
+  Draw: 'MARK UP',
+  Text: 'CAPTION',
+  Shapes: 'BOXES',
+  Frame: 'BORDER',
 };
 
 type EditorBoundaryProps = {
@@ -136,7 +178,7 @@ function AngleLockGate({ assignment, onLockAngle }: AngleLockGateProps) {
               <span>ANGLE 0{index + 1}</span>
               <strong>{angle.label}</strong>
               <small>{angle.prompt}</small>
-              <i>{angle.moves.map((move) => move.tool).join(' + ')}</i>
+              <i>{angle.moves.map((move) => TOOL_NAMES[move.tool]).join(' + ')}</i>
             </button>
           ))}
         </div>
@@ -169,6 +211,8 @@ type EditorStageProps = {
   editorReady: boolean;
   editorFailed: boolean;
   isPublishing: boolean;
+  /** True once city heat has reached the tier where the desk is told to hold. */
+  heldEdition: boolean;
   onLockAngle: (angleId: string) => void;
   onEditorCrash: () => void;
   onEditorLoad: () => void;
@@ -193,6 +237,7 @@ export function EditorStage({
   editorReady,
   editorFailed,
   isPublishing,
+  heldEdition,
   onLockAngle,
   onEditorCrash,
   onEditorLoad,
@@ -205,7 +250,7 @@ export function EditorStage({
     <div className="editor-stage">
       <div className="editor-stage-bar">
         <span><i className="live-dot" /> UNLAYER REACT IMAGE EDITOR / FULL-RES FIELD PLATE</span>
-        <span>{angle ? 'SAVE = PUBLISH' : 'ANGLE LOCK REQUIRED'}</span>
+        <span>{!angle ? 'ANGLE LOCK REQUIRED' : heldEdition ? 'EDITION HELD / SAVE STILL PRINTS' : 'SAVE = PUBLISH'}</span>
       </div>
       <div className="editor-shell" aria-busy={Boolean(angle) && !editorReady && !editorFailed}>
         {!angle && <AngleLockGate assignment={assignment} onLockAngle={onLockAngle} />}
@@ -233,6 +278,9 @@ export function EditorStage({
         <p>{angle ? <>Make at least one visible editorial move, then click <strong>Save (✓)</strong> in Unlayer&apos;s top-right corner. That exact export is the only route to print.</> : <>Choose an <strong>Angle Lock</strong> above. The full-resolution plate and editor module are already being prepared.</>}</p>
         {angle && <span className="save-cue" aria-hidden="true">{isPublishing ? 'PRINTING…' : 'SAVE ↑'}</span>}
       </div>
+      {/* Shown only on a narrow viewport, where the rail collapses to icons
+          and the canvas is the tightest thing in the app. */}
+      <p className="editor-narrow-note">Turn the handset sideways for a wider canvas. The rail collapses to icons at this width; your plate and your marks are unaffected either way.</p>
     </div>
   );
 }

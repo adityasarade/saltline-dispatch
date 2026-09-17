@@ -162,6 +162,48 @@ export function leadLedgerLine(proof: LeadProof): string {
   return `${inside}% CHANGED · REST OF FRAME ${outside}% · ${proof.verdictLabel}`;
 }
 
+/**
+ * The data-URL seam.
+ *
+ * `measureLead` takes a Blob because that is what `onSave` hands back. The
+ * live readout beside the editor only has `getImage()`, which returns a
+ * string, so it converts here and then goes through the exact same
+ * measurement below - same grid, same CHANGE_THRESHOLD, same WORKED_SHARE,
+ * same ASPECT_TOLERANCE. There is deliberately no second implementation.
+ *
+ * It returns null rather than throwing for the known trap: `getImage()`
+ * hands back the *source URL* for a remote PNG before anything has been
+ * drawn, and a source URL is not an export. Anything that is not a
+ * `data:image/` string is refused, so the live card shows nothing instead of
+ * confidently measuring the untouched plate against itself.
+ */
+export async function blobFromDataUrl(dataUrl: string | null | undefined): Promise<Blob | null> {
+  if (typeof dataUrl !== 'string' || !/^data:image\/[a-z+]+;/i.test(dataUrl)) return null;
+
+  try {
+    const response = await fetch(dataUrl);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return blob.size > 0 ? blob : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * `measureLead` for a data URL. A thin delegate, so the live readout and the
+ * authoritative Save reading cannot drift apart.
+ */
+export async function measureLeadFromDataUrl(
+  plateUrl: string,
+  dataUrl: string | null | undefined,
+  region: LeadRegion | null,
+): Promise<{ insideChange: number | null; outsideChange: number | null; recropped: boolean }> {
+  const blob = await blobFromDataUrl(dataUrl);
+  if (!blob) return { insideChange: null, outsideChange: null, recropped: false };
+  return measureLead(plateUrl, blob, region);
+}
+
 type Sampled = { data: Uint8ClampedArray; size: number };
 
 /**
