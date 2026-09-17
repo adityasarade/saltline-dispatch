@@ -10,7 +10,9 @@
     "build": "vinext build",
     "build:vercel": "next build",
     "start": "vinext start",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
+    "test": "node --test tests/*.test.mjs",
+    "check:content": "node scripts/check-content.mjs"
   },
   "dependencies": {
     "@unlayer/react-image-editor": "^1.0.2",

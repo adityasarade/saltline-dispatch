@@ -1,44 +1,23 @@
 /* eslint-disable @next/next/no-img-element -- editor exports are user-specific data URLs and must remain unoptimized. */
 'use client';
 
-import { Component, lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ImageEditorRef, ImageEditorSaveResult } from '@unlayer/react-image-editor';
+import { pressLedgerLine, type PressRead } from '@/lib/press-read';
+import { leadLedgerLine, measureLead, readLead, type LeadProof } from '@/lib/lead-proof';
+import { leadRegion } from '@/lib/lead-regions';
+import { ASSIGNMENTS } from '@/lib/assignments';
+import { filedAt, formatBytes, imageExtension, inspectExport, loadCanvasImage } from '@/lib/export-meta';
+import {
+  EditorStage,
+  createImageEditor,
+  preloadImageEditor,
+  resetImageEditorModule,
+} from '@/components/saltline/editor-stage';
+import { DeskSound } from '@/lib/desk-sound';
+import { renderFrontPage } from '@/lib/front-page';
 
 type Screen = 'desk' | 'calls' | 'edit' | 'reveal' | 'archive';
-type Instinct = 'person' | 'object';
-
-type ToolCue = {
-  tool: 'Crop' | 'Filter' | 'Draw' | 'Text' | 'Shapes' | 'Frame';
-  instruction: string;
-};
-
-type Angle = {
-  id: string;
-  label: string;
-  prompt: string;
-  outcome: string;
-  stamp: string;
-  moves: [ToolCue, ToolCue, ToolCue];
-  closingLead: string;
-  closingEmphasis: string;
-  closingDeck: string;
-};
-
-type Assignment = {
-  id: string;
-  issue: string;
-  call: string;
-  time: string;
-  place: string;
-  title: string;
-  deck: string;
-  prompt: string;
-  outcome: string;
-  image: string;
-  preview: string;
-  accent: 'coral' | 'teal' | 'gold';
-  angles: Angle[];
-};
 
 type Dispatch = {
   id: string;
@@ -58,307 +37,8 @@ type Dispatch = {
   mimeType: string;
   width: number | null;
   height: number | null;
-};
-
-const ASSIGNMENTS: Assignment[] = [
-  {
-    id: 'wake-tax',
-    issue: 'ISSUE 04',
-    call: 'CALL 01',
-    time: '02:13',
-    place: 'Bellwether Pier',
-    title: 'Wake Tax',
-    deck: 'Nacre Bay Boat Club says its pleasure launch never cut the ferry lane. The whole pier watched it sprint past the toll buoy.',
-    prompt: 'Keep the ferry. Lose the alibi. Make the water look guilty.',
-    outcome: 'The ferry master clipped your plate to the manifest before sunrise. Two hours later, the boat was moored under a borrowed name.',
-    image: '/images/wake-tax.png',
-    preview: '/images/display/wake-tax-768.webp',
-    accent: 'coral',
-    angles: [
-      {
-        id: 'expose-launch',
-        label: 'Expose the launch',
-        prompt: 'Center the pleasure launch. Let the ferry lane tell on it.',
-        outcome: 'The ferry master clipped your plate to the manifest before sunrise. Two hours later, the boat was moored under a borrowed name.',
-        stamp: 'LAUNCH EXPOSED',
-        moves: [
-          { tool: 'Crop', instruction: 'Keep the launch, toll buoy, and broken wake together.' },
-          { tool: 'Draw', instruction: 'Trace the wake back toward the launch.' },
-          { tool: 'Text', instruction: 'Mark the time where the ferry lane narrows.' },
-        ],
-        closingLead: 'The wake reaches',
-        closingEmphasis: 'the ledger first.',
-        closingDeck: 'The club can rename the boat by sunrise. It cannot rename the route you printed.',
-      },
-      {
-        id: 'protect-crew',
-        label: 'Protect the ferry crew',
-        prompt: 'Keep the ferry in frame. Make the boat club carry the blame.',
-        outcome: 'The crew made the first crossing untouched. By breakfast, the boat club had sent three lawyers and one silent apology.',
-        stamp: 'CREW PROTECTED',
-        moves: [
-          { tool: 'Crop', instruction: 'Hold the ferry lane and push the launch to the edge.' },
-          { tool: 'Shapes', instruction: 'Box the safe line the crew kept.' },
-          { tool: 'Text', instruction: 'Give the first crossing a clean label.' },
-        ],
-        closingLead: 'The first crossing',
-        closingEmphasis: 'keeps its name.',
-        closingDeck: 'The crew reaches dawn untouched. The boat club inherits every question left in frame.',
-      },
-    ],
-  },
-  {
-    id: 'room-08',
-    issue: 'ISSUE 04',
-    call: 'CALL 02',
-    time: '02:19',
-    place: 'Morrow Court',
-    title: 'Room 08',
-    deck: 'A white coupe waited outside Paradise Slabs Motor Court. The balcony light blinked once. The pool kept the rest of the story.',
-    prompt: 'Hold the witness. Cut the noise. Leave one question open.',
-    outcome: 'By breakfast the manager had changed the key cards. The person behind the door left a damp matchbook on the desk with no room number.',
-    image: '/images/room-08.png',
-    preview: '/images/display/room-08-768.webp',
-    accent: 'teal',
-    angles: [
-      {
-        id: 'show-witness',
-        label: 'Show the witness',
-        prompt: 'Hold the balcony. Let the witness stay visible through the noise.',
-        outcome: 'By breakfast the manager had changed the key cards. The person behind the door left a damp matchbook on the desk with no room number.',
-        stamp: 'WITNESS SHOWN',
-        moves: [
-          { tool: 'Crop', instruction: 'Keep the balcony and its pool reflection together.' },
-          { tool: 'Filter', instruction: 'Lift the contrast until the light holds.' },
-          { tool: 'Draw', instruction: 'Bracket the window the manager denies.' },
-        ],
-        closingLead: 'One balcony',
-        closingEmphasis: 'stays lit.',
-        closingDeck: 'The key cards change before breakfast. The witness remains exactly where you left the light.',
-      },
-      {
-        id: 'hide-witness',
-        label: 'Hide the witness',
-        prompt: 'Cut the balcony loose. Put the reflection, not the person, on the record.',
-        outcome: 'The coupe disappeared before dawn. The pool reflection remained, sharp enough for the night desk and nobody else.',
-        stamp: 'WITNESS HELD',
-        moves: [
-          { tool: 'Crop', instruction: 'Cut the balcony and keep the pool in frame.' },
-          { tool: 'Filter', instruction: 'Cool the scene until the reflection leads.' },
-          { tool: 'Text', instruction: 'Leave one room number unanswered.' },
-        ],
-        closingLead: 'The reflection',
-        closingEmphasis: 'keeps the secret.',
-        closingDeck: 'The coupe leaves before dawn. The only witness left is water, and water never signs a statement.',
-      },
-    ],
-  },
-  {
-    id: 'after-rain',
-    issue: 'ISSUE 04',
-    call: 'CALL 03',
-    time: '02:27',
-    place: 'Cormorant Carnival',
-    title: 'After the Rain',
-    deck: 'Floodwater returns a silver mask that the Cala Cielo Carnival claims was never missing. Every witness has a different story.',
-    prompt: 'Find the object. Follow the reflection. Do not clean it up.',
-    outcome: 'The mask made the morning edition, then vanished from the evidence bag. A brass ticket appeared where it had been, stamped for a ride that has not existed in twelve years.',
-    image: '/images/after-rain-daybreak.png',
-    preview: '/images/display/after-rain-daybreak-768.webp',
-    accent: 'gold',
-    angles: [
-      {
-        id: 'publish-mask',
-        label: 'Publish the mask',
-        prompt: 'Find the mask. Let the morning city see what the carnival denied.',
-        outcome: 'The mask made the morning edition, then vanished from the evidence bag. A brass ticket appeared where it had been, stamped for a ride that has not existed in twelve years.',
-        stamp: 'MASK PUBLISHED',
-        moves: [
-          { tool: 'Crop', instruction: 'Pull the mask and floodwater into the same proof.' },
-          { tool: 'Filter', instruction: 'Bleach the morning without cleaning the scene.' },
-          { tool: 'Shapes', instruction: 'Ring the object the carnival never logged.' },
-        ],
-        closingLead: 'The mask makes',
-        closingEmphasis: 'the morning run.',
-        closingDeck: 'It disappears from evidence after print. The edition keeps the face the carnival tried to lose.',
-      },
-      {
-        id: 'follow-courier',
-        label: 'Follow the courier',
-        prompt: 'Follow the courier through the reflection. Keep the mask as a warning, not the headline.',
-        outcome: 'The courier crossed the service bridge at dawn. The carnival kept its mask, but the route was now on the record.',
-        stamp: 'COURIER FOLLOWED',
-        moves: [
-          { tool: 'Crop', instruction: 'Hold the courier, service bridge, and reflection.' },
-          { tool: 'Draw', instruction: 'Run a route line through the wet street.' },
-          { tool: 'Text', instruction: 'Stamp the next crossing time beside the rider.' },
-        ],
-        closingLead: 'A wet route',
-        closingEmphasis: 'outlives the rider.',
-        closingDeck: 'The carnival keeps its mask. Your line gives the morning desk somewhere real to follow.',
-      },
-    ],
-  },
-  {
-    id: 'undertow',
-    issue: 'ISSUE 04',
-    call: 'CALL 04',
-    time: '02:34',
-    place: 'Vesper Quay',
-    title: 'Undertow',
-    deck: 'A phone went into the tide behind a closed quay kiosk. Somebody stayed to watch it sink. Somebody else took the tender home.',
-    prompt: 'Find the hand-off. Let the tide erase nothing.',
-    outcome: 'At high tide the phone was gone, but the wet sleeve made the morning print. The tender owner stopped returning calls at 08:01.',
-    image: '/images/undertow.png',
-    preview: '/images/display/undertow-768.webp',
-    accent: 'teal',
-    angles: [
-      {
-        id: 'print-handoff',
-        label: 'Print the hand-off',
-        prompt: 'Frame the phone and wet sleeve. Make the exchange impossible to deny.',
-        outcome: 'At high tide the phone was gone, but the wet sleeve made the morning print. The tender owner stopped returning calls at 08:01.',
-        stamp: 'HAND-OFF PRINTED',
-        moves: [
-          { tool: 'Crop', instruction: 'Keep the phone, wet sleeve, and tide line tight.' },
-          { tool: 'Filter', instruction: 'Push contrast until the hand-off reads first.' },
-          { tool: 'Shapes', instruction: 'Box the exchange the quay cameras missed.' },
-        ],
-        closingLead: 'The tide takes',
-        closingEmphasis: 'everything but proof.',
-        closingDeck: 'The phone is gone at high water. The sleeve remains in print, dry enough for every desk in town.',
-      },
-      {
-        id: 'follow-tender',
-        label: 'Follow the tender',
-        prompt: 'Let the phone fall away. Hold the watcher and the tender in the same story.',
-        outcome: 'The tender left before dawn. Its wake cut straight past the quay cameras, but your plate preserved the one person who watched it go.',
-        stamp: 'TENDER FOLLOWED',
-        moves: [
-          { tool: 'Crop', instruction: 'Pair the watcher with the tender in one frame.' },
-          { tool: 'Draw', instruction: 'Pull an arrow from the quay into the channel.' },
-          { tool: 'Text', instruction: 'Mark the departure time the cameras lost.' },
-        ],
-        closingLead: 'One wake line',
-        closingEmphasis: 'leaves the quay.',
-        closingDeck: 'The tender clears the cameras before dawn. Your plate keeps the watcher attached to its route.',
-      },
-    ],
-  },
-  {
-    id: 'off-the-meter',
-    issue: 'ISSUE 04',
-    call: 'CALL 05',
-    time: '02:41',
-    place: 'Northbelt Causeway',
-    title: 'Off the Meter',
-    deck: 'A shuttle meter kept ticking on an empty causeway. A coral ribbon flapped inside. Its driver was already walking toward the ferry.',
-    prompt: 'Read the meter. Catch the route before it disappears.',
-    outcome: 'The ferry crossed without the driver. At first light, the shuttle appeared two districts away with the same ribbon and a different fare.',
-    image: '/images/off-the-meter.png',
-    preview: '/images/display/off-the-meter-768.webp',
-    accent: 'coral',
-    angles: [
-      {
-        id: 'tag-driver',
-        label: 'Tag the driver',
-        prompt: 'Hold the driver against the ferry lights. Make the exit the whole story.',
-        outcome: 'The ferry crossed without the driver. At first light, the shuttle appeared two districts away with the same ribbon and a different fare.',
-        stamp: 'DRIVER TAGGED',
-        moves: [
-          { tool: 'Crop', instruction: 'Keep the driver against the last ferry lights.' },
-          { tool: 'Draw', instruction: 'Circle the person leaving the running meter.' },
-          { tool: 'Text', instruction: 'Tag the final fare beside the causeway.' },
-        ],
-        closingLead: 'The driver walks',
-        closingEmphasis: 'out of the fare.',
-        closingDeck: 'The shuttle returns under new plates. The person who left it cannot step out of your frame.',
-      },
-      {
-        id: 'map-route',
-        label: 'Map the route',
-        prompt: 'Keep the empty shuttle and the meter together. Let the route expose itself.',
-        outcome: 'The meter kept running until noon. Its impossible fare drew a line through three districts and one sealed marina gate.',
-        stamp: 'ROUTE MAPPED',
-        moves: [
-          { tool: 'Crop', instruction: 'Hold the empty shuttle and live meter together.' },
-          { tool: 'Draw', instruction: 'Pull the fare line toward the sealed marina gate.' },
-          { tool: 'Shapes', instruction: 'Box the number that makes the route impossible.' },
-        ],
-        closingLead: 'The meter draws',
-        closingEmphasis: 'a road nobody owns.',
-        closingDeck: 'The fare keeps climbing after the engine cools. Your mark turns the number into a route.',
-      },
-    ],
-  },
-];
-
-type ImageEditorModule = typeof import('@unlayer/react-image-editor');
-
-let editorImportPromise: Promise<ImageEditorModule> | null = null;
-
-function loadImageEditor() {
-  editorImportPromise ??= import('@unlayer/react-image-editor');
-  return editorImportPromise;
-}
-
-function preloadImageEditor() {
-  const promise = loadImageEditor();
-  void promise.catch(() => {
-    if (editorImportPromise === promise) editorImportPromise = null;
-  });
-}
-
-const ImageEditor = lazy(loadImageEditor);
-
-type EditorBoundaryProps = {
-  children: ReactNode;
-  onFailure: () => void;
-  resetKey: number;
-};
-
-type EditorBoundaryState = {
-  failed: boolean;
-  resetKey: number;
-};
-
-class EditorBoundary extends Component<EditorBoundaryProps, EditorBoundaryState> {
-  state: EditorBoundaryState = { failed: false, resetKey: this.props.resetKey };
-
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-
-  static getDerivedStateFromProps(props: EditorBoundaryProps, state: EditorBoundaryState) {
-    return props.resetKey === state.resetKey ? null : { failed: false, resetKey: props.resetKey };
-  }
-
-  componentDidCatch() {
-    this.props.onFailure();
-  }
-
-  render() {
-    return this.state.failed ? null : this.props.children;
-  }
-}
-
-const EDITOR_OPTIONS = {
-  theme: 'dark' as const,
-  features: {
-    imageEditor: {
-      dock: 'left' as const,
-      tools: {
-        crop: true,
-        resize: false,
-        filter: true,
-        draw: true,
-        text: true,
-        shapes: true,
-        stickers: false,
-        frame: true,
-      },
-    },
-  },
+  press: PressRead;
+  lead: LeadProof;
 };
 
 const steps: Array<{ id: Screen; label: string; number: string }> = [
@@ -369,136 +49,25 @@ const steps: Array<{ id: Screen; label: string; number: string }> = [
   { id: 'archive', label: 'Archive', number: '05' },
 ];
 
-function formatTime() {
-  return new Intl.DateTimeFormat('en', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date());
-}
-
-function imageExtension(dataUrl: string) {
-  const mimeType = /^data:image\/(png|jpeg|webp);/i.exec(dataUrl)?.[1]?.toLowerCase();
-  return mimeType === 'jpeg' ? 'jpg' : mimeType ?? 'png';
-}
-
-function formatBytes(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function fallbackPlateCode(dataUrl: string) {
-  const sample = `${dataUrl.slice(0, 4096)}${dataUrl.slice(-4096)}${dataUrl.length}`;
-  let hash = 2166136261;
-
-  for (let index = 0; index < sample.length; index += 1) {
-    hash ^= sample.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return (hash >>> 0).toString(16).padStart(8, '0').toUpperCase();
-}
-
-async function inspectExport(dataUrl: string, blob: Blob) {
-  let plateCode = fallbackPlateCode(dataUrl);
-  let width: number | null = null;
-  let height: number | null = null;
-
-  try {
-    const digest = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
-    plateCode = Array.from(new Uint8Array(digest).slice(0, 5), (byte) => byte.toString(16).padStart(2, '0')).join('').toUpperCase();
-  } catch {
-    // The deterministic fallback still gives every exact export a visible press identifier.
-  }
-
-  if ('createImageBitmap' in window) {
-    try {
-      const bitmap = await createImageBitmap(blob);
-      width = bitmap.width;
-      height = bitmap.height;
-      bitmap.close();
-    } catch {
-      // Dimensions are supporting metadata; the exported data URL remains the artifact.
-    }
-  }
-
-  return { plateCode: `SL-${plateCode}`, width, height };
-}
-
-function loadCanvasImage(source: string) {
-  return new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error('Image failed to load'));
-    image.src = source;
-  });
-}
-
-function drawContainedImage(
-  context: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-) {
-  const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
-  const drawWidth = image.naturalWidth * scale;
-  const drawHeight = image.naturalHeight * scale;
-  context.fillStyle = '#121617';
-  context.fillRect(x, y, width, height);
-  context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
-}
-
-function drawWrappedText(
-  context: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  maxWidth: number,
-  lineHeight: number,
-  maxLines: number,
-) {
-  const words = text.split(/\s+/);
-  let line = '';
-  let lineIndex = 0;
-
-  for (const word of words) {
-    const nextLine = line ? `${line} ${word}` : word;
-    if (context.measureText(nextLine).width <= maxWidth) {
-      line = nextLine;
-      continue;
-    }
-
-    context.fillText(line, x, y + lineIndex * lineHeight);
-    line = word;
-    lineIndex += 1;
-    if (lineIndex >= maxLines - 1) break;
-  }
-
-  if (line && lineIndex < maxLines) context.fillText(line, x, y + lineIndex * lineHeight);
-}
-
 export default function Home() {
   const [screen, setScreen] = useState<Screen>('desk');
   const [furthestStep, setFurthestStep] = useState(0);
   const [selectedId, setSelectedId] = useState(ASSIGNMENTS[0].id);
   const [selectedAngleId, setSelectedAngleId] = useState<string | null>(null);
-  const [briefingStep, setBriefingStep] = useState<'instinct' | 'loop'>('instinct');
-  const [instinct, setInstinct] = useState<Instinct | null>(null);
-  const [isBriefingOpen, setIsBriefingOpen] = useState(false);
   const [isClosingFrameOpen, setIsClosingFrameOpen] = useState(false);
   const [dispatches, setDispatches] = useState<Dispatch[]>([]);
   const [activeDispatchId, setActiveDispatchId] = useState<string | null>(null);
   const [editorStatus, setEditorStatus] = useState('Loading the field plate…');
   const [editorAttempt, setEditorAttempt] = useState(0);
-  const [EditorComponent, setEditorComponent] = useState(() => ImageEditor);
+  const [EditorComponent, setEditorComponent] = useState(createImageEditor);
   const [editorFailed, setEditorFailed] = useState(false);
   const [editorReady, setEditorReady] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isPressRunning, setIsPressRunning] = useState(false);
+  const [discardAsk, setDiscardAsk] = useState<{ message: string; resolve: (keep: boolean) => void } | null>(null);
+  const [deskNotice, setDeskNotice] = useState('');
+  const [soundOn, setSoundOn] = useState(false);
   const startButtonRef = useRef<HTMLButtonElement>(null);
-  const briefingDialogRef = useRef<HTMLElement>(null);
   const closingDialogRef = useRef<HTMLElement>(null);
   const screenRef = useRef<HTMLElement>(null);
   const previousScreen = useRef<Screen | null>(null);
@@ -507,6 +76,7 @@ export default function Home() {
   const publishingRef = useRef(false);
   const angleTransitionRef = useRef(false);
   const draftRevisionRef = useRef(0);
+  const deskSound = useRef<DeskSound | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -514,25 +84,54 @@ export default function Home() {
     previousScreen.current = screen;
   }, [screen]);
 
-  useEffect(() => {
-    const dialog = isBriefingOpen
-      ? briefingDialogRef.current
-      : isClosingFrameOpen
-        ? closingDialogRef.current
-        : null;
-
-    dialog?.focus({ preventScroll: true });
-  }, [briefingStep, isBriefingOpen, isClosingFrameOpen]);
+  useEffect(() => () => deskSound.current?.disable(), []);
 
   useEffect(() => {
-    if (!isBriefingOpen && !isClosingFrameOpen) return;
+    if (!deskNotice) return;
+    const timer = window.setTimeout(() => setDeskNotice(''), 6000);
+    return () => window.clearTimeout(timer);
+  }, [deskNotice]);
+
+  // An in-world replacement for window.confirm. The desk asks on newsprint
+  // rather than handing the visitor a browser chrome dialog mid-story.
+  function askDiscard(message: string) {
+    return new Promise<boolean>((resolve) => {
+      setDiscardAsk({ message, resolve });
+    });
+  }
+
+  function answerDiscard(discard: boolean) {
+    discardAsk?.resolve(discard);
+    setDiscardAsk(null);
+  }
+
+  async function toggleSound() {
+    if (soundOn) {
+      deskSound.current?.disable();
+      setSoundOn(false);
+      return;
+    }
+
+    deskSound.current ??= new DeskSound();
+    const ready = await deskSound.current.enable();
+    setSoundOn(ready);
+    if (ready) deskSound.current.cue('call');
+  }
+
+  useEffect(() => {
+    if (!isClosingFrameOpen) return;
+    closingDialogRef.current?.focus({ preventScroll: true });
+  }, [isClosingFrameOpen]);
+
+  useEffect(() => {
+    if (!isClosingFrameOpen) return;
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [isBriefingOpen, isClosingFrameOpen]);
+  }, [isClosingFrameOpen]);
 
   useEffect(() => {
     if (screen !== 'edit' || !editorReady) return;
@@ -562,11 +161,6 @@ export default function Home() {
     [selected, selectedAngleId],
   );
 
-  const recommendedAssignment = useMemo(
-    () => ASSIGNMENTS.find((assignment) => assignment.id === (instinct === 'person' ? 'room-08' : 'after-rain')) ?? ASSIGNMENTS[0],
-    [instinct],
-  );
-
   const activeAssignment = useMemo(() => {
     const assignmentId = activeDispatch?.assignmentId ?? selected.id;
     return ASSIGNMENTS.find((assignment) => assignment.id === assignmentId) ?? selected;
@@ -586,14 +180,14 @@ export default function Home() {
     image.src = imageUrl;
   }
 
-  function navigateTo(nextScreen: Screen) {
+  async function navigateTo(nextScreen: Screen) {
     if (nextScreen === 'reveal' && !activeDispatch) return;
     if (screen === 'edit' && nextScreen !== 'edit' && (publishingRef.current || angleTransitionRef.current)) {
       setEditorStatus('The image desk is finishing the current operation. Leave after it settles.');
       return;
     }
     if (screen === 'edit' && nextScreen !== 'edit' && imageEditorRef.current?.editor?.hasChanges()) {
-      const shouldDiscard = window.confirm('This field plate has unpublished marks. Discard them and leave the image desk?');
+      const shouldDiscard = await askDiscard('This field plate has unpublished marks. Discard them and leave the image desk?');
       if (!shouldDiscard) return;
     }
     if (screen === 'edit' && nextScreen !== 'edit') draftRevisionRef.current += 1;
@@ -607,7 +201,6 @@ export default function Home() {
       preloadImageEditor();
       prefetchPlate(selected.image);
     }
-    setIsBriefingOpen(false);
     setIsClosingFrameOpen(false);
     setScreen(nextScreen);
   }
@@ -645,11 +238,6 @@ export default function Home() {
     }
   }
 
-  function closeBriefing() {
-    setIsBriefingOpen(false);
-    window.requestAnimationFrame(() => startButtonRef.current?.focus());
-  }
-
   function closeClosingFrame() {
     setIsClosingFrameOpen(false);
     window.requestAnimationFrame(() => {
@@ -661,6 +249,7 @@ export default function Home() {
 
   function beginAssignment(id: string) {
     const assignment = ASSIGNMENTS.find((item) => item.id === id) ?? ASSIGNMENTS[0];
+    deskSound.current?.cue('call');
     draftRevisionRef.current += 1;
     setSelectedId(id);
     setSelectedAngleId(null);
@@ -674,35 +263,16 @@ export default function Home() {
     setScreen('edit');
   }
 
-  function openRecommendedAssignment() {
-    setIsBriefingOpen(false);
-    beginAssignment(recommendedAssignment.id);
-  }
-
   function browseFieldCalls() {
-    setIsBriefingOpen(false);
     advanceProgress(1);
     setScreen('calls');
-  }
-
-  function startTonightRun() {
-    browseFieldCalls();
-  }
-
-  function chooseInstinct(nextInstinct: Instinct) {
-    setInstinct(nextInstinct);
-  }
-
-  function openBriefingLoop() {
-    if (!instinct) return;
-    setBriefingStep('loop');
   }
 
   function retryEditor() {
     if (publishingRef.current || angleTransitionRef.current) return;
     draftRevisionRef.current += 1;
-    editorImportPromise = null;
-    setEditorComponent(() => lazy(loadImageEditor));
+    resetImageEditorModule();
+    setEditorComponent(createImageEditor);
     setEditorFailed(false);
     setEditorReady(false);
     setEditorStatus('Reloading the field plate…');
@@ -715,7 +285,7 @@ export default function Home() {
 
     const editor = imageEditorRef.current?.editor;
     if (selectedAngle && editor?.hasChanges()) {
-      const shouldDiscard = window.confirm('Changing the Angle Lock clears the marks on this plate. Discard those marks and relock the lead?');
+      const shouldDiscard = await askDiscard('Changing the Angle Lock clears the marks on this plate. Discard those marks and relock the lead?');
       if (!shouldDiscard) return;
       angleTransitionRef.current = true;
       setEditorStatus('Clearing the old marks before the new lead is locked…');
@@ -738,13 +308,13 @@ export default function Home() {
     setEditorStatus(`Angle locked: ${nextAngle.label}. Follow the three-move route, then Save.`);
   }
 
-  function leaveEditorAfterCancel() {
+  async function leaveEditorAfterCancel() {
     if (publishingRef.current || angleTransitionRef.current) {
       setEditorStatus('The image desk is finishing the current operation. Cancel after it settles.');
       return;
     }
     if (imageEditorRef.current?.editor?.hasChanges()) {
-      const shouldDiscard = window.confirm('This field plate has unpublished marks. Discard them and return to the calls?');
+      const shouldDiscard = await askDiscard('This field plate has unpublished marks. Discard them and return to the calls?');
       if (!shouldDiscard) return;
     }
     draftRevisionRef.current += 1;
@@ -758,7 +328,12 @@ export default function Home() {
 
   async function publishDispatch({ dataUrl, blob }: ImageEditorSaveResult) {
     const editor = imageEditorRef.current?.editor;
-    if (!dataUrl || !blob || !selectedAngle || !editor || publishingRef.current || angleTransitionRef.current) return;
+    if (publishingRef.current || angleTransitionRef.current) return;
+    if (!editor || !selectedAngle) return;
+    if (!dataUrl || !blob) {
+      setEditorStatus('The editor returned an empty export. Save once more from the image desk.');
+      return;
+    }
     const draftRevision = draftRevisionRef.current;
     publishingRef.current = true;
 
@@ -780,10 +355,22 @@ export default function Home() {
     }
 
     setIsPublishing(true);
+    setIsPressRunning(true);
+    deskSound.current?.cue('press');
     setEditorStatus('Developing the exact Unlayer export…');
     try {
-      const exportDetails = await inspectExport(dataUrl, blob);
-      if (draftRevisionRef.current !== draftRevision || imageEditorRef.current?.editor !== editor) return;
+      // The press run covers the real measurement work. It is held to a
+      // floor so the reveal always lands as a beat rather than a jump cut.
+      const region = leadRegion(selected.id, selectedAngle.id);
+      const [exportDetails, leadMeasurement] = await Promise.all([
+        inspectExport(dataUrl, blob, selected.baseLuminance),
+        measureLead(selected.image, blob, region),
+        new Promise((resolve) => window.setTimeout(resolve, 900)),
+      ]);
+      if (draftRevisionRef.current !== draftRevision || imageEditorRef.current?.editor !== editor) {
+        setEditorStatus('That draft was replaced before it reached the press. Save the current plate again.');
+        return;
+      }
       const extension = imageExtension(dataUrl);
       const dispatch: Dispatch = {
         id: `${selected.id}-${Date.now()}`,
@@ -791,7 +378,7 @@ export default function Home() {
         angleId: selectedAngle.id,
         image: dataUrl,
         issue: `${selected.issue}.${String(dispatches.length + 1).padStart(2, '0')}`,
-        createdAt: formatTime(),
+        createdAt: filedAt(selected.time, dispatches.length),
         angleLabel: selectedAngle.label,
         angleOutcome: selectedAngle.outcome,
         angleStamp: selectedAngle.stamp,
@@ -803,6 +390,13 @@ export default function Home() {
         mimeType: blob.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
         width: exportDetails.width,
         height: exportDetails.height,
+        press: exportDetails.press,
+        lead: readLead(
+          leadMeasurement.insideChange,
+          leadMeasurement.outsideChange,
+          region?.subject ?? null,
+          leadMeasurement.recropped,
+        ),
       };
 
       setDispatches((current) => [dispatch, ...current]);
@@ -810,11 +404,13 @@ export default function Home() {
       draftRevisionRef.current += 1;
       advanceProgress(3);
       setScreen('reveal');
+      deskSound.current?.cue('stamp');
     } catch {
       setEditorStatus('The export returned, but the press ledger could not file it. Save once more.');
     } finally {
       publishingRef.current = false;
       setIsPublishing(false);
+      setIsPressRunning(false);
     }
   }
 
@@ -822,18 +418,29 @@ export default function Home() {
     setSelectedId(dispatch.assignmentId);
     setSelectedAngleId(dispatch.angleId);
     setActiveDispatchId(dispatch.id);
-    setIsBriefingOpen(false);
     setIsClosingFrameOpen(false);
     setScreen('reveal');
   }
 
-  function downloadDispatch() {
+  async function downloadDispatch() {
     if (!activeDispatch) return;
-    const link = document.createElement('a');
-    link.href = activeDispatch.image;
-    const issueSlug = activeDispatch.issue.toLowerCase().replace(/\s+/g, '-');
-    link.download = `saltline-${activeAssignment.id}-${issueSlug}.${imageExtension(activeDispatch.image)}`;
-    link.click();
+    // A large base64 data: URL is an unreliable <a download> target, so the
+    // exact export is handed over as a Blob URL instead. The bytes are
+    // untouched either way.
+    const issueSlug = activeDispatch.issue.toLowerCase().replace(/[\s.]+/g, '-');
+    const name = `saltline-${activeAssignment.id}-${issueSlug}.${imageExtension(activeDispatch.image)}`;
+
+    try {
+      const blob = await (await fetch(activeDispatch.image)).blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = name;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch {
+      setDeskNotice('That plate could not be handed over. Try the front-page download instead.');
+    }
   }
 
   async function downloadFrontPage() {
@@ -841,88 +448,31 @@ export default function Home() {
     setIsPublishing(true);
     try {
       const image = await loadCanvasImage(activeDispatch.image);
-      const canvas = document.createElement('canvas');
-      canvas.width = 1600;
-      canvas.height = 2000;
-      const context = canvas.getContext('2d');
-      if (!context) throw new Error('Canvas unavailable');
-
-      context.fillStyle = '#e9e2d1';
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      context.strokeStyle = 'rgba(23,26,24,.12)';
-      context.lineWidth = 1;
-      for (let x = 64; x < canvas.width; x += 32) {
-        context.beginPath();
-        context.moveTo(x, 0);
-        context.lineTo(x, canvas.height);
-        context.stroke();
-      }
-
-      context.fillStyle = '#171a18';
-      context.fillRect(0, 0, canvas.width, 210);
-      context.fillStyle = '#f0eadc';
-      context.font = '900 82px Arial Black, Arial, sans-serif';
-      context.fillText('SALTLINE', 88, 122);
-      context.font = '22px Arial, sans-serif';
-      context.fillText('NIGHT EDITION / CALA VERDA', 92, 166);
-      context.fillStyle = '#e4543f';
-      context.fillRect(1225, 0, 375, 210);
-      context.fillStyle = '#171a18';
-      context.font = '900 28px Arial Black, Arial, sans-serif';
-      context.fillText(activeDispatch.issue, 1292, 92);
-      context.font = '19px ui-monospace, monospace';
-      context.fillText(activeDispatch.createdAt, 1292, 132);
-
-      context.fillStyle = '#a63b2d';
-      context.font = '700 22px Arial, sans-serif';
-      context.fillText(`${activeAssignment.place.toUpperCase()} / ${activeDispatch.plateCode}`, 90, 292);
-      context.fillStyle = '#171a18';
-      context.font = '400 104px Georgia, Times New Roman, serif';
-      drawWrappedText(context, activeDispatch.closingLead, 88, 405, 1320, 108, 2);
-      context.fillStyle = '#a63b2d';
-      context.font = 'italic 104px Georgia, Times New Roman, serif';
-      drawWrappedText(context, activeDispatch.closingEmphasis, 88, 610, 1320, 108, 2);
-
-      drawContainedImage(context, image, 88, 765, 1424, 950);
-      context.strokeStyle = '#171a18';
-      context.lineWidth = 5;
-      context.strokeRect(85, 762, 1430, 956);
-
-      context.fillStyle = '#171a18';
-      context.font = '700 20px Arial, sans-serif';
-      context.fillText(`${activeDispatch.angleStamp} / EXACT UNLAYER EXPORT ON FILE`, 88, 1772);
-      context.font = '400 27px Georgia, Times New Roman, serif';
-      drawWrappedText(context, activeDispatch.closingDeck, 88, 1834, 1160, 38, 3);
-      context.strokeStyle = '#a63b2d';
-      context.lineWidth = 6;
-      context.strokeRect(1290, 1765, 220, 142);
-      context.save();
-      context.translate(1400, 1835);
-      context.rotate(-0.07);
-      context.fillStyle = '#a63b2d';
-      context.textAlign = 'center';
-      context.font = '900 22px Arial Black, Arial, sans-serif';
-      context.fillText(activeDispatch.angleStamp, 0, 0, 184);
-      context.font = '17px ui-monospace, monospace';
-      context.fillText(activeDispatch.createdAt, 0, 34);
-      context.restore();
-      context.fillStyle = '#171a18';
-      context.font = '16px ui-monospace, monospace';
-      context.fillText('YOUR EDIT. YOUR ANGLE. ON THE RECORD.', 88, 1950);
-      context.textAlign = 'right';
-      context.fillText(activeDispatch.plateCode, 1512, 1950);
-
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob((result) => result ? resolve(result) : reject(new Error('PNG export failed')), 'image/png');
-      });
-      const link = document.createElement('a');
+      const blob = await renderFrontPage(
+        {
+          issue: activeDispatch.issue,
+          createdAt: activeDispatch.createdAt,
+          plateCode: activeDispatch.plateCode,
+          place: activeAssignment.place,
+          angleStamp: activeDispatch.angleStamp,
+          closingLead: activeDispatch.closingLead,
+          closingEmphasis: activeDispatch.closingEmphasis,
+          closingDeck: activeDispatch.closingDeck,
+          play: activeDispatch.press.play,
+          playLabel: activeDispatch.press.playLabel,
+          toneLabel: activeDispatch.press.toneLabel,
+          ledgerLine: pressLedgerLine(activeDispatch.press),
+        },
+        image,
+      );
       const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
       link.href = url;
-      link.download = `saltline-${activeAssignment.id}-${activeDispatch.issue.toLowerCase().replace(/\s+/g, '-')}-front-page.png`;
+      link.download = `saltline-${activeAssignment.id}-${activeDispatch.issue.toLowerCase().replace(/[\s.]+/g, '-')}-front-page.png`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 2000);
     } catch {
-      window.alert('The front page could not be developed. Your exact plate is still safe and can be downloaded.');
+      setDeskNotice('The front page could not be developed. Your exact plate is still safe and can be downloaded.');
     } finally {
       setIsPublishing(false);
     }
@@ -931,7 +481,7 @@ export default function Home() {
   const currentStep = steps.findIndex((step) => step.id === screen);
 
   return (
-    <main className={`saltline ${screen === 'edit' ? 'is-editing' : ''}`}>
+    <main className="saltline">
       <div className="paper-noise" aria-hidden="true" />
       <header className="topbar">
         <button className="wordmark" onClick={() => navigateTo('desk')} aria-label="Return to the Saltline night desk">
@@ -946,6 +496,15 @@ export default function Home() {
           <span className="meta-dot" aria-hidden="true" />
           <span>NO ACCOUNTS. NO ALIBIS.</span>
         </div>
+        <button
+          className={`desk-sound ${soundOn ? 'is-on' : ''}`}
+          onClick={() => void toggleSound()}
+          aria-pressed={soundOn}
+          title="Three short desk noises: a call landing, the press, and the stamp. No soundtrack."
+        >
+          <span className="desk-sound-bars" aria-hidden="true"><i /><i /><i /></span>
+          <span>{soundOn ? 'DESK SOUND ON' : 'DESK SOUND OFF'}</span>
+        </button>
         <button className="archive-count" onClick={() => navigateTo('archive')}>
           <span>ISSUE WALL</span>
           <b>{String(dispatches.length).padStart(2, '0')}</b>
@@ -989,7 +548,7 @@ export default function Home() {
               </ol>
             </div>
             <div className="desk-actions">
-              <button ref={startButtonRef} className="ink-button" onClick={startTonightRun}>Start tonight&apos;s run <span>→</span></button>
+              <button ref={startButtonRef} className="ink-button" onClick={browseFieldCalls}>Start tonight&apos;s run <span>→</span></button>
               <span className="edition-note">5 cases<br />1 print to make</span>
             </div>
           </div>
@@ -1093,84 +652,39 @@ export default function Home() {
             <p className="editor-status" role="status">{editorStatus}</p>
             {editorFailed && <button className="retry-button" onClick={retryEditor}>Retry editor →</button>}
           </aside>
-          <div className="editor-stage">
-            <div className="editor-stage-bar">
-              <span><i className="live-dot" /> UNLAYER REACT IMAGE EDITOR / FULL-RES FIELD PLATE</span>
-              <span>{selectedAngle ? 'SAVE = PUBLISH' : 'ANGLE LOCK REQUIRED'}</span>
-            </div>
-            <div className={`editor-shell ${editorReady ? 'is-ready' : ''} ${selectedAngle ? 'is-angle-locked' : 'is-angle-gate'}`} aria-busy={Boolean(selectedAngle) && !editorReady && !editorFailed}>
-              {!selectedAngle && (
-                <div className="angle-gate">
-                  <img className="angle-gate-image" src={selected.preview} width="768" height="512" decoding="async" alt="" />
-                  <div className="angle-gate-panel">
-                    <p className="eyebrow">The same plate can tell two true stories.</p>
-                    <h2>Lock the lead<br /><em>before you mark it.</em></h2>
-                    <div className="angle-gate-options" role="group" aria-label="Choose the dispatch angle">
-                      {selected.angles.map((angle, index) => (
-                        <button key={angle.id} type="button" onClick={() => lockAngle(angle.id)}>
-                          <span>ANGLE 0{index + 1}</span>
-                          <strong>{angle.label}</strong>
-                          <small>{angle.prompt}</small>
-                          <i>{angle.moves.map((move) => move.tool).join(' + ')}</i>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-              {selectedAngle && !editorReady && (
-                <div className="editor-loader" aria-hidden="true">
-                  <img src={selected.preview} width="768" height="512" decoding="async" alt="" />
-                  <div className="editor-loader-copy">
-                    <span>FULL-RES FIELD PLATE</span>
-                    <b>{editorFailed ? 'SIGNAL INTERRUPTED' : 'DEVELOPING AT THE NIGHT DESK'}</b>
-                    <i />
-                  </div>
-                </div>
-              )}
-              {selectedAngle && (
-                <EditorBoundary
-                  resetKey={editorAttempt}
-                  onFailure={() => {
-                    setEditorFailed(true);
-                    setEditorReady(false);
-                    setEditorStatus('The image desk module was interrupted. Retry when the connection is ready.');
-                  }}
-                >
-                  <Suspense fallback={null}>
-                    <EditorComponent
-                      ref={imageEditorRef}
-                      key={`${selected.id}-${editorAttempt}`}
-                      image={selected.image}
-                      minHeight="min(64vh, 720px)"
-                      options={EDITOR_OPTIONS}
-                      onLoad={() => {
-                        setEditorFailed(false);
-                        setEditorReady(true);
-                        setEditorStatus('Image desk connected. Make the locked lead visible, then Save.');
-                      }}
-                      onLoadError={() => {
-                        setEditorFailed(true);
-                        setEditorReady(false);
-                        setEditorStatus('The field plate did not load. Retry the editor or return to the cases.');
-                      }}
-                      onError={() => {
-                        setEditorFailed(true);
-                        setEditorReady(false);
-                        setEditorStatus('The image desk could not open. Retry the editor when the connection is ready.');
-                      }}
-                      onSave={(result) => void publishDispatch(result)}
-                      onCancel={leaveEditorAfterCancel}
-                    />
-                  </Suspense>
-                </EditorBoundary>
-              )}
-            </div>
-            <div className="editor-actions">
-              <p>{selectedAngle ? <>Make at least one visible editorial move, then click <strong>Save (✓)</strong> in Unlayer&apos;s top-right corner. That exact export is the only route to print.</> : <>Choose an <strong>Angle Lock</strong> above. The full-resolution plate and editor module are already being prepared.</>}</p>
-              {selectedAngle && <span className="save-cue" aria-hidden="true">{isPublishing ? 'PRINTING…' : 'SAVE ↑'}</span>}
-            </div>
-          </div>
+          <EditorStage
+            EditorComponent={EditorComponent}
+            assignment={selected}
+            angle={selectedAngle}
+            editorRef={imageEditorRef}
+            editorAttempt={editorAttempt}
+            editorReady={editorReady}
+            editorFailed={editorFailed}
+            isPublishing={isPublishing}
+            onLockAngle={(angleId) => void lockAngle(angleId)}
+            onEditorCrash={() => {
+              setEditorFailed(true);
+              setEditorReady(false);
+              setEditorStatus('The image desk module was interrupted. Retry when the connection is ready.');
+            }}
+            onEditorLoad={() => {
+              setEditorFailed(false);
+              setEditorReady(true);
+              setEditorStatus('Image desk connected. Make the locked lead visible, then Save.');
+            }}
+            onEditorLoadError={() => {
+              setEditorFailed(true);
+              setEditorReady(false);
+              setEditorStatus('The field plate did not load. Retry the editor or return to the cases.');
+            }}
+            onEditorError={() => {
+              setEditorFailed(true);
+              setEditorReady(false);
+              setEditorStatus('The image desk could not open. Retry the editor when the connection is ready.');
+            }}
+            onSave={(result) => void publishDispatch(result)}
+            onCancel={leaveEditorAfterCancel}
+          />
         </section>
       )}
 
@@ -1181,6 +695,12 @@ export default function Home() {
             <h1 id="reveal-title">Your edit is<br /><em>on the record.</em></h1>
             <p>{activeDispatch.angleOutcome}</p>
             <p className="reveal-angle">ANGLE LOCKED / {activeDispatch.angleLabel}</p>
+            <p className={`lead-call lead-${activeDispatch.lead.verdict}`}>
+              <b>{activeDispatch.lead.verdictLabel}</b>
+              {activeDispatch.lead.subject ? <em>You locked {activeDispatch.lead.subject}.</em> : null}
+              {activeDispatch.lead.verdictNote}
+            </p>
+            <p className="press-call"><b>{activeDispatch.press.playLabel}</b> {activeDispatch.press.playNote}</p>
             <div className="proof-pair" aria-label="Original field plate compared with the exact saved editor export">
               <figure>
                 <img src={activeAssignment.preview} width="768" height="512" decoding="async" alt={`Original field plate for ${activeAssignment.title}`} />
@@ -1196,11 +716,13 @@ export default function Home() {
             <dl className="export-ledger">
               <div><dt>PLATE</dt><dd>{activeDispatch.plateCode}</dd></div>
               <div><dt>EXPORT</dt><dd>{activeDispatch.width && activeDispatch.height ? `${activeDispatch.width} × ${activeDispatch.height}` : 'FLATTENED'} / {activeDispatch.mimeType.replace('image/', '').toUpperCase()} / {formatBytes(activeDispatch.byteSize)}</dd></div>
+              <div><dt>PRESS</dt><dd>{pressLedgerLine(activeDispatch.press)}</dd></div>
+              <div><dt>LEAD</dt><dd>{leadLedgerLine(activeDispatch.lead)}</dd></div>
             </dl>
             <div className="reveal-actions">
               <button className="ink-button" onClick={() => { advanceProgress(4); setScreen('archive'); setIsClosingFrameOpen(true); }}>Close the edition <span>→</span></button>
               <button className="text-button" disabled={isPublishing} onClick={() => void downloadFrontPage()}>{isPublishing ? 'Developing front page…' : 'Download front page ↓'}</button>
-              <button className="text-button" onClick={downloadDispatch}>Keep exact plate ↓</button>
+              <button className="text-button" onClick={() => void downloadDispatch()}>Keep exact plate ↓</button>
             </div>
           </div>
           <article className={`printed-dispatch accent-${activeAssignment.accent}`}>
@@ -1251,49 +773,35 @@ export default function Home() {
         </section>
       )}
 
-      {isBriefingOpen && screen === 'desk' && (
-        <section
-          ref={briefingDialogRef}
-          className="briefing-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="briefing-title"
-          tabIndex={-1}
-          onKeyDown={(event) => handleDialogKeyDown(event, closeBriefing)}
-        >
-          <div className="briefing-sheet">
-            <div className="briefing-topline">
-              <span>ISSUE 04 / FIRST SHIFT</span>
-              <span className="overlay-controls">
-                <span>{briefingStep === 'instinct' ? '01 / 02' : '02 / 02'}</span>
-                <button className="overlay-close" onClick={closeBriefing} aria-label="Close the first-shift guide">CLOSE ×</button>
-              </span>
+      {deskNotice && (
+        <div className="desk-notice" role="alert">
+          <p>{deskNotice}</p>
+          <button onClick={() => setDeskNotice('')} aria-label="Dismiss desk notice">CLOSE ×</button>
+        </div>
+      )}
+
+      {discardAsk && (
+        <div className="discard-ask" role="dialog" aria-modal="true" aria-labelledby="discard-title">
+          <div className="discard-sheet">
+            <p className="eyebrow">SALTLINE / NIGHT DESK</p>
+            <h2 id="discard-title">Spike these marks?</h2>
+            <p>{discardAsk.message}</p>
+            <div className="discard-actions">
+              <button className="ink-button" onClick={() => answerDiscard(true)} autoFocus>Spike the marks <span>→</span></button>
+              <button className="text-button" onClick={() => answerDiscard(false)}>Keep working the plate</button>
             </div>
-            {briefingStep === 'instinct' ? (
-              <>
-                <p className="eyebrow">The city gives you five calls. Start with an instinct.</p>
-                <h2 id="briefing-title">What do you<br /><em>follow first?</em></h2>
-                <div className="instinct-options" role="group" aria-label="Choose your first desk instinct">
-                  <button className={instinct === 'person' ? 'is-selected' : ''} onClick={() => chooseInstinct('person')} aria-pressed={instinct === 'person'}><b>01</b><span><strong>Chase a person</strong>A balcony light, a missing driver, a witness who wants to vanish.</span></button>
-                  <button className={instinct === 'object' ? 'is-selected' : ''} onClick={() => chooseInstinct('object')} aria-pressed={instinct === 'object'}><b>02</b><span><strong>Follow an object</strong>A mask, a phone, a ribbon. Things lie slower than people.</span></button>
-                </div>
-                <button className="ink-button briefing-next" disabled={!instinct} onClick={openBriefingLoop}>Set the desk instinct <span>→</span></button>
-              </>
-            ) : (
-              <>
-                <p className="eyebrow">Your first call is ready. The loop has one rule.</p>
-                <h2 id="briefing-title">Print what the<br /><em>city will not.</em></h2>
-                <ol className="briefing-loop">
-                  <li><b>01</b><span><strong>Pick one of five calls</strong>There is no perfect case, only the one you put on the record.</span></li>
-                  <li><b>02</b><span><strong>Lock the lead</strong>Your choice changes the brief, the outcome, and the issue stamp.</span></li>
-                  <li><b>03</b><span><strong>Work the field plate</strong>Use the React Image Editor to make that lead visible before you save.</span></li>
-                </ol>
-                <p className="briefing-recommendation">YOUR FIRST LEAD / <b>{recommendedAssignment.title.toUpperCase()}</b></p>
-                <div className="briefing-actions"><button className="ink-button" onClick={openRecommendedAssignment} onPointerDown={() => prefetchPlate(recommendedAssignment.image)}>Open {recommendedAssignment.title} <span>→</span></button><button className="text-button" onClick={browseFieldCalls}>Browse all five calls</button></div>
-              </>
-            )}
           </div>
-        </section>
+        </div>
+      )}
+
+      {isPressRunning && (
+        <div className="press-run" role="status" aria-live="polite">
+          <div className="press-run-inner">
+            <p>SALTLINE / NIGHT PRESS</p>
+            <h2>Running your plate.</h2>
+            <span>Measuring the exact Unlayer export and setting the page.</span>
+          </div>
+        </div>
       )}
 
       {isClosingFrameOpen && screen === 'archive' && activeDispatch && (

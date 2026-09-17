@@ -2,9 +2,11 @@
 
 > Every night leaves a mark. Make it printable.
 
-Saltline Dispatch is an original late-night coastal editorial micro-experience built for Unlayer's Build With React Image Editor Challenge. It answers the official prompt for a GTA VI-inspired experience by translating only its broad high-stakes coastal-crime premise into the entirely fictional city of Cala Verda, an independent visual language, original stories, and original assets. It does not reproduce franchise material or styling.
+It is 2:13 AM in Cala Verda and you are the only reporter still awake. Five calls come in. Every field plate you get back can prove two different things, and both of them are true.
 
-Five late-night calls arrive at the night desk. Every field plate contains two defensible truths. You choose which truth survives by locking an editorial angle, following its three-tool reporting route in React Image Editor, and saving the exact result into the night edition.
+You pick which truth the city wakes up believing. Lock an editorial angle, work the plate in React Image Editor until that lead is visible, and hit Save. Whatever you saved is what goes to print - and the shape you cut it to decides how the front page runs it.
+
+Built for Unlayer's Build With React Image Editor Challenge.
 
 [Live preview](https://saltline-dispatch.vercel.app) · [Public source](https://github.com/adityasarade/saltline-dispatch)
 
@@ -16,18 +18,20 @@ Five late-night calls arrive at the night desk. Every field plate contains two d
 
 1. Select **Start tonight's run** and open any of the five field calls.
 2. At **Angle Lock**, choose which of two defensible truths the field plate should prove.
-3. Make a visible edit with the suggested React Image Editor tools, then use the editor's own **Save (✓)** control.
-4. Compare the source and saved plate in the reveal, download the personalized front page, continue through the angle-specific closing frame, and open the issue wall.
-5. Replay or download the archived dispatch. The plate code and exact saved pixels remain identical across every payoff state and artifact.
+3. Mark the subject your angle named — draw on it, caption it, crop to it — then use the editor's own **Save (✓)** control. An untouched Save is refused.
+4. Read the **lead call** and the **press call** in the reveal. The desk has measured whether your marks landed on the thing you locked, and what shape you cut the plate to. Both readings are shown with the numbers they came from.
+5. Download the front page. Its layout is chosen by your crop: a wide cut runs as a banner, a tight cut as a tall column. Then continue through the closing frame and open the issue wall.
 
-The key judging moment is the transition from Angle Lock to the editor and then to the printed reveal. It demonstrates that the editor is the story mechanic and the saved export is the artifact, not an optional utility attached to the experience.
+**If you only have thirty seconds:** lock an angle, scribble once directly on the subject it names, and Save. Then do the same case again and scribble on the sky instead. Same case, same angle, two different printed verdicts — from your pixels, not from a menu.
+
+The key judging moment is Angle Lock → editor → printed reveal. The editor is the story mechanic and the saved export is the artifact, not a utility bolted to the side of one.
 
 ## The 3 to 5 minute loop
 
 1. **Landing desk:** Select **Start tonight's run** to reach all five field calls immediately. The three-step rule card on the landing page carries the orientation without an extra modal.
-2. **Field calls:** Choose exactly one of five original calls: Wake Tax, Room 08, After the Rain, Undertow, or Off the Meter.
+2. **Field calls:** Choose exactly one of five original calls: Wake Tax, Room 08, After the Rain, Undertow, or Off the Meter. The desk phone answers as the case opens.
 3. **Angle Lock and editor:** Every call offers two editorial leads. No angle is silently selected. Lock one, then use its custom three-tool route to work the original 1536 × 1024 same-origin field plate with crop, filters, draw, text, shapes, or frames. General-purpose stickers are deliberately disabled.
-4. **Publish:** Select the editor's own **Save (✓)** control. Its returned `dataUrl` is the only publish path.
+4. **Publish:** Select the editor's own **Save (✓)** control. Its returned `dataUrl` is the only publish path. The night press run covers the real measurement work, then hands back a press read: your crop and brightness decide whether the page runs your plate as a banner, a lead, or a column.
 5. **Reveal, closing frame, and archive:** The exact flattened `dataUrl` appears in the publish reveal, the downloadable 1600 × 2000 front page, the angle-specific closing-frame overlay, and the session archive. Saltline's paper, stamp, and caption sit outside the exported pixels. The raw-plate download uses that same export and its returned image format.
 
 The five screens are landing desk, field calls, editor, publish, and archive. The closing frame is an overlay inside that flow. Removing React Image Editor removes the visitor-authored dispatch and breaks the central loop.
@@ -46,24 +50,51 @@ The same Save callback also uses Unlayer's returned `blob` to report honest expo
 
 The feature configuration stays stable because changing editor features remounts the editor and discards work. The AI Assistant is not used, so the experience needs no API key, account, backend, or paid service.
 
+### The lead proof: did your marks land on what you claimed?
+
+Locking an angle is a claim about **one subject in the photograph** — the pleasure launch, the witness on the balcony, the silver mask, the driver against the ferry lights. On Save, the desk checks whether your marks actually landed on it.
+
+Each of the ten leads has a hand-authored region, read off the artwork and stored in [`lib/lead-regions.ts`](lib/lead-regions.ts). The saved export is compared against the untouched plate on a 256px grid, and two numbers come back: the share of pixels that moved **inside** that region, and the share that moved **everywhere else**.
+
+| Result | What it means |
+| --- | --- |
+| **ON THE LEAD** | More than 1.5% of the region moved, and it moved more than the rest of the frame by a clear margin. The desk runs it as proof. |
+| **WORKED WIDE** | The region moved, but so did everything else about equally — a global filter, say. The desk runs it, with a note. |
+| **LEAD UNTOUCHED** | You edited the plate, but not the thing you locked. It still prints; the desk just says so. |
+| **PLATE RECROPPED** | You recut the frame. A crop moves every pixel, so the comparison saturates and the desk refuses to report a number — it reads the cut instead. See the press read above. |
+
+Both percentages appear in the export ledger next to the printed plate. Two visitors who lock the *same* angle on the *same* case get different verdicts if one marks the subject and the other marks the sky.
+
+**The thresholds are measured, not guessed.** React Image Editor returns a re-encoded JPEG even when nothing was drawn, so a naive diff would report change everywhere. Re-encoding the five plates at quality 0.80–0.92 moves the 99.5th-percentile pixel by 9–22, which is why a pixel must move by more than 24 to count; that leaves the re-encode floor at 0.33% of pixels against a 1.5% decision line. A thin 8px stroke laid across the smallest region moves 3.0% of it. An earlier 4% threshold rejected exactly that stroke, which is how the number ended up where it is.
+
+**What this deliberately does not do:** it does not understand your edit. It cannot tell a caption from a crop mark, it has no opinion about whether your mark is any good, and it knows nothing about the subject beyond a rectangle. It compares pixels in a box against pixels in the same box, reports both percentages, and says which way it read them. The logic is pure and covered by 16 tests in [`tests/lead-proof.test.mjs`](tests/lead-proof.test.mjs).
+
+### The press read: your crop changes the page
+
+Locking an angle decides what the story says. The edit itself decides how the story runs.
+
+On Save, Saltline measures two things about your actual export and prints what they imply, the way a real night desk would:
+
+| Measurement | What the desk does with it |
+| --- | --- |
+| **Aspect ratio** of the saved export | A wide cut (≥ 1.70:1, which includes a 16:9 crop) is promoted to a **banner** across the top of the page, headline underneath. A tight cut (≤ 1.20:1) is run as a tall **column** with the deck set alongside it. Anything between — including the untouched 1.50:1 plate — runs as the **night lead**. |
+| **Exposure** against the plate you started from | The export's mean luminance divided by that plate's own measured baseline. Below 0.82× is filed as **PRESSED DARK**, above 1.22× as **PUSHED FOR DETAIL**, otherwise **STRAIGHT PRESS**. |
+
+Exposure is deliberately *relative*. Every Cala Verda plate is a night scene with a baseline luminance between 0.11 and 0.37, so an absolute brightness threshold would only ever restate that the artwork is dark. Measuring against the plate you were handed means the press note reports what **you** did to it.
+
+All three numbers — ratio, luminance, and exposure — are shown to you in the export ledger beside the printed plate, and the press call is stamped on the downloadable front page. Two visitors who lock the same angle on the same case get genuinely different pages if they cut or grade the plate differently, and the reason is disclosed rather than implied.
+
+Saltline deliberately does **not** claim to understand your edit. It does not read your subject, your intent, or the quality of your work. It measures geometry and exposure, says so, and lays out the page accordingly. The logic is a set of pure functions in [`lib/press-read.ts`](lib/press-read.ts), covered by 13 tests in [`tests/press-read.test.mjs`](tests/press-read.test.mjs).
+
+### Desk sound
+
+The night desk has three short noises and no soundtrack: a call landing when you open a case, the press feeding a sheet when you Save, and a stamp coming down when the dispatch is filed. They are synthesized with WebAudio in [`lib/desk-sound.ts`](lib/desk-sound.ts), so the project ships no audio files and needs no audio licence. Sound is off until you turn it on from the topbar.
+
 ## Performance and image delivery
 
-Saltline preserves each original 1536 × 1024 PNG as the untouched same-origin source passed to React Image Editor. Display-only surfaces use measured WebP derivatives, keeping browsing light without reducing editable plate quality.
+Each original 1536 × 1024 PNG stays as the untouched same-origin source handed to React Image Editor, so editable quality is never reduced. Every display-only surface - the landing hero and the five call previews - uses a measured WebP derivative instead, which takes the landing from 3.4 MB of PNG to about 0.8 MB total transfer.
 
-- Only the responsive landing hero loads eagerly and at high priority.
-- The editor package begins preloading only after a field call is selected and stays out of the landing bundle.
-- Five 768 × 512 call previews use native lazy loading and explicit dimensions.
-- The selected full-resolution PNG begins loading when its call is activated, while the visitor chooses an explicit Angle Lock.
-- A case-specific preview holds the stage while the full-resolution plate and editor load.
-- Dynamic export frames reserve their layout and contain any crop ratio without hiding pixels.
-
-| Surface | Before | After |
-| --- | ---: | ---: |
-| Landing hero | 3,361,867 B PNG | 160,582 B WebP at 768 px, or 583,562 B at 1536 px |
-| All five call images | 15,317,149 B PNG | 431,592 B total WebP previews |
-| Selected editor source | 2,798,020 to 3,177,871 B PNG | Unchanged original PNG |
-
-The 768 px hero reduces encoded weight by 95.22%, while the five call previews reduce it by 97.18%. Repository bytes are shown above. Actual transfer depends on viewport, cache state, and which native-lazy previews enter the browser's loading threshold.
+Per-asset encodings, sizes, and encoder settings are in [asset provenance](docs/asset-provenance.md).
 
 ## Screenshots
 
@@ -73,13 +104,17 @@ The 768 px hero reduces encoded weight by 95.22%, while the five call previews r
 | --- | --- |
 | ![Five Saltline field calls at 1280 by 720](docs/screenshots/field-calls-1280x720.webp) | ![Saltline Angle Lock gate at 1280 by 720](docs/screenshots/angle-lock-1280x720.webp) |
 
-| React Image Editor | Exact saved reveal |
+| React Image Editor, mid-edit | The night press run |
 | --- | --- |
-| ![Saltline evidence editor at 1280 by 720](docs/screenshots/editor-1280x720.webp) | ![Saltline published dispatch at 1280 by 720](docs/screenshots/publish-1280x720.webp) |
+| ![The Saltline evidence editor with a coral draw stroke traced across the wake, at 1280 by 720](docs/screenshots/editor-1280x720.webp) | ![The Saltline night press run covering the export measurement, at 1280 by 720](docs/screenshots/press-run-1280x720.webp) |
 
-| Closing frame | Session archive |
+| Exact saved reveal and press read | Session archive |
 | --- | --- |
-| ![Saltline closing frame at 390 by 844](docs/screenshots/closing-390x844.webp) | ![Saltline session archive at 390 by 844](docs/screenshots/archive-390x844.webp) |
+| ![The published Saltline dispatch showing the exact saved export, the press read, and the export ledger, at 1280 by 720](docs/screenshots/publish-1280x720.webp) | ![Saltline session archive at 390 by 844](docs/screenshots/archive-390x844.webp) |
+
+The closing frame at phone width:
+
+![Saltline closing frame at 390 by 844](docs/screenshots/closing-390x844.webp)
 
 ## Run locally
 
@@ -96,11 +131,17 @@ Open the local URL printed by the development server. React Image Editor loads i
 
 ```bash
 npm run lint
+npm run test
+npm run check:content
 npm run build
 npm run build:vercel
 ```
 
-The competition-readiness pass also exercises cold loads at 390 × 844 and 1280 × 720, horizontal overflow, direct landing-to-calls navigation, explicit Angle Lock, untouched-Save rejection, real edits through all six enabled tools, editor loading and recovery states, exact reveal-to-front-page-to-closing-to-archive identity, stale-artifact prevention, and archive replay.
+`npm run test` runs 45 unit tests with Node's built-in runner and needs Node 22.18+ for TypeScript import stripping. They cover the press-read play and tone classifiers, the lead-proof verdicts and their measured thresholds, the in-world clock including its wrap past midnight, and the export-metadata helpers — boundaries, determinism and the disclosed ledger lines included.
+
+`npm run check:content` walks the authored content and fails the build if any case is incomplete: a missing plate or preview, an angle without a three-move route, a route naming a tool that is not enabled, a lead without an authored region, or a display derivative that has leaked into the editor path. A broken image in front of a judge is the one failure no unit test catches.
+
+Everything else was **verified by hand** in a real browser, not automated: cold loads at 390 × 844 and 1280 × 720, horizontal overflow, direct landing-to-calls navigation, explicit Angle Lock, untouched-Save rejection, real edits through all six enabled tools, editor loading and recovery states, exact reveal-to-front-page-to-closing-to-archive identity, stale-artifact prevention, and archive replay.
 
 ## Vercel deployment
 
@@ -111,6 +152,7 @@ The public competition build runs at [saltline-dispatch.vercel.app](https://salt
 - React 19, TypeScript, and Next.js 16 on Vercel
 - Vinext and OpenAI Sites compatibility retained for local and private fallback builds
 - Unlayer React Image Editor 1.0.2
+- Barlow Condensed (SIL OFL 1.1) self-hosted through `next/font/google` for the uppercase desk furniture, with Georgia for the display serif
 - Local React state for the current session archive
 - Same-origin 1536 × 1024 PNG editor sources
 - Responsive WebP derivatives for display-only surfaces
@@ -124,10 +166,14 @@ All assignment artwork and interface marks were created for this project. See [a
 ## Repository notes
 
 - The complete source needed to run the project is public.
-- The React Image Editor implementation is visible in [app/page.tsx](app/page.tsx).
+- The React Image Editor implementation is visible in [components/saltline/editor-stage.tsx](components/saltline/editor-stage.tsx): the code-split module load, the enabled tool dock, the error boundary, the Angle Lock gate, the loading plate, and the `<ImageEditor>` mount with every callback it uses.
+- The five cases, their ten angles and all narrative copy are data in [lib/assignments.ts](lib/assignments.ts), so the story can be read without reading the app.
+- What the desk can say about a saved export — the plate code, the extension, the size, and the in-world filing time — is a set of pure functions in [lib/export-meta.ts](lib/export-meta.ts), covered by [tests/export-meta.test.mjs](tests/export-meta.test.mjs).
+- [app/page.tsx](app/page.tsx) is the screen flow and state machine only.
+- [app/globals.css](app/globals.css) is grouped in the order a visitor meets it, one declaration per line, with one block per breakpoint.
 - Canonical field plates remain in `public/images` for same-origin canvas compatibility.
 - Display derivatives live in `public/images/display` and are never passed to the editor.
-- The project deliberately keeps five assignments and five screens. Its guide and closing frame remain overlays.
+- The project deliberately keeps five assignments and five screens. The closing frame is an overlay inside that flow.
 - There is no account system, backend, analytics, external API, or generated-story dependency.
 - The evidence-based requirement matrix and final entrant actions are in [the competition audit](docs/competition-audit.md).
 
