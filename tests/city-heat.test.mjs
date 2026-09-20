@@ -276,7 +276,7 @@ test('a contradiction is charged, flagged on both plates, and named', () => {
   assert.equal(second.state.plates[0].contradicted, true);
   assert.equal(second.state.plates[1].contradicted, true);
   assert.deepEqual(second.state.contradictions, ['wake-tax']);
-  assert.ok(second.state.notices.some((line) => /printed both sides of Wake Tax/.test(line)));
+  assert.ok(second.state.notices.some((line) => /printed both angles on Wake Tax/.test(line)));
 });
 
 test('the contradiction charge dwarfs a repeat, because it is the sharper failure', () => {
@@ -401,7 +401,7 @@ test('the standing reads differently before, during and after a contradiction', 
     plate({ id: 'b', angleId: 'protect-crew' }),
     filing({ angleId: 'protect-crew' }),
   ).state;
-  assert.match(standingSummary(contradicted), /printed both sides/);
+  assert.match(standingSummary(contradicted), /two angles without explaining the change/);
 });
 
 // ---------------------------------------------------------------------------

@@ -21,7 +21,7 @@ Built for Unlayer's Build With React Image Editor Challenge.
 3. Mark the subject your angle named — **MARK UP** on it, **CAPTION** it, **FRAME** to it. Watch the **live sample** card beside the canvas: it flips between *on the lead* and *off the lead* as you work, and tells you which front-page layout your current crop would produce. Then use the editor's own **Save (✓)** control. An untouched Save is refused.
 4. Read the **lead call**, the **press call** and the **city heat** charge in the reveal. The desk has measured whether your marks landed on the thing you locked, what shape you cut the plate to, and what printing it cost you. Every reading is shown with the numbers it came from.
 5. Download the front page. Its layout is chosen by your crop: a wide cut runs as a banner, a tight cut as a tall column. Then continue through the closing frame and open the issue wall.
-6. **Now do it again, and print the *opposing* angle on the same case.** The paper contradicts itself in print, the wall stamps both plates, and the city heat jumps. Reload the page: the wall, the heat and the contradiction are all still there.
+6. **Now do it again, and print the other angle on the same case.** The paper runs two versions without reconciling its change in lead. Both plates are flagged, and city heat jumps. Reload the page: the wall, the heat and both versions are still there.
 
 **If you only have thirty seconds:** lock an angle, scribble once directly on the subject it names, and Save. Then do the same case again and scribble on the sky instead. Same case, same angle, two different printed verdicts — from your pixels, not from a menu.
 
@@ -83,7 +83,7 @@ Both percentages appear in the export ledger next to the printed plate. Two visi
 
 Saltline used to reset on refresh, which meant a judge who played twice got the same game twice. It does not any more.
 
-The issue wall, the heat the desk has drawn, which leads and which measured moves you keep leaning on, and every time the paper has contradicted itself are kept in the browser under **one versioned key**, `saltline.desk.v1`. The logic is a pure module — no clock, no crypto, no DOM — in [`lib/city-heat.ts`](lib/city-heat.ts), covered by 42 tests in [`tests/city-heat.test.mjs`](tests/city-heat.test.mjs).
+The issue wall, the heat the desk has drawn, which leads and which measured moves you keep leaning on, and every case covered from both angles are kept in the browser under **one versioned key**, `saltline.desk.v1`. The logic is a pure module — no clock, no crypto, no DOM — in [`lib/city-heat.ts`](lib/city-heat.ts), covered by 42 tests in [`tests/city-heat.test.mjs`](tests/city-heat.test.mjs).
 
 **Heat is charged for facts the desk already measured and already shows you**, itemised on the reveal:
 
@@ -92,11 +92,11 @@ The issue wall, the heat the desk has drawn, which leads and which measured move
 | A plate went to print | Every dispatch | **+8** |
 | That lead was already on the wall | Relocking a lead you have printed | **+5**, then +8, +11 … |
 | The desk reused a move it has run before | Per repeated *measured* move | **+3**, then +5, +7 … |
-| The paper printed the opposing angle on this case | A contradiction | **+18** |
+| The paper printed the other angle without reconciling its change in lead | Unreconciled coverage | **+18** |
 
 A "move" here is not a guess about which buttons you pressed — React Image Editor does not report that, and guessing would be exactly the claim this project refuses to make elsewhere. It is one of the three readings already printed in your export ledger: how you **cut** the plate (banner / lead / column), how you **graded** it (pressed dark / straight / pushed for detail), and whether your **marks** landed on the locked lead. Reuse means the measurement came back the same, which is a fact, and the desk says so in those terms: *"The desk has run three plates off the full-frame lead. Someone has noticed."*
 
-**Contradiction is the sharpest consequence, and it only exists here.** Every Saltline case has two defensible truths. Print one, then print the other, and the paper has contradicted itself in print, under its own masthead, in the same hour. Both plates are stamped **CONTRADICTED IN PRINT** on the wall, the case is named in a "THE PAPER AGAINST ITSELF" ledger with both angles and both filing times, and it costs more than any repeat.
+**Unreconciled coverage is the sharpest consequence, and it only exists here.** Every Saltline case has two defensible editorial leads; they are not necessarily opposite factual claims. Print one, then print the other without an editor's note, and the paper owes readers an explanation for its changed emphasis. Both plates are stamped **UNRECONCILED IN PRINT** on the wall, the case is named in an **UNRECONCILED COVERAGE** ledger with both angles and filing times, and it costs more than any repeat. The editor warns you before you file that second version.
 
 **Four named tiers, and the heat changes what you see, not just a number:**
 
@@ -188,9 +188,9 @@ Per-asset encodings, sizes, and encoder settings are in [asset provenance](docs/
 | --- | --- |
 | ![The Saltline editor mid-edit with the live sample card reading ON THE LEAD, at 1280 by 720](docs/screenshots/live-read-1280x720.webp) | ![The Saltline desk standing sheet showing the LETTERS ARRIVING heat tier, the itemised standing and the moves the desk keeps running, at 1280 by 720](docs/screenshots/standing-sheet-1280x720.webp) |
 
-The issue wall under city heat, with the pinned legal notice, the paper's own contradiction on the record, two plates stamped CONTRADICTED IN PRINT, and the classifieds on the back page:
+The issue wall under city heat, with a pinned legal notice, a ledger of two angles on one case, and the classifieds on the back page. This capture predates the clearer *unreconciled coverage* wording now used in the UI:
 
-![The Saltline issue wall at the LETTERS ARRIVING tier, showing the city heat panel, a pinned legal notice, the contradiction ledger, three plates with two stamped CONTRADICTED IN PRINT, and the Cala Verda classifieds](docs/screenshots/city-heat-wall-1280x1688.webp)
+![Earlier Saltline issue wall capture at the LETTERS ARRIVING tier with a pinned notice, two-angle ledger, and three plates](docs/screenshots/city-heat-wall-1280x1688.webp)
 
 The closing frame at phone width:
 
@@ -217,11 +217,11 @@ npm run build
 npm run build:vercel
 ```
 
-`npm run test` runs 87 unit tests with Node's built-in runner and needs Node 22.18+ for TypeScript import stripping. They cover the press-read play and tone classifiers, the lead-proof verdicts and their measured thresholds, the city-heat tier boundaries, repeat escalation, contradiction detection, determinism and its behaviour on corrupt, absent and over-quota stored data, the in-world clock including its wrap past midnight, and the export-metadata helpers — boundaries, determinism and the disclosed ledger lines included.
+`npm run test` runs 87 unit tests with Node's built-in runner and needs Node 22.18+ for TypeScript import stripping. They cover the press-read play and tone classifiers, the lead-proof verdicts and their measured thresholds, the city-heat tier boundaries, repeat escalation, two-angle detection, determinism and its behaviour on corrupt, absent and over-quota stored data, the in-world clock including its wrap past midnight, and the export-metadata helpers — boundaries, determinism and the disclosed ledger lines included.
 
 `npm run check:content` walks the authored content and fails the build if any case is incomplete: a missing plate or preview, an angle without a three-move route, a route naming a tool that is not enabled, a lead without an authored region, or a display derivative that has leaked into the editor path. It also sweeps every line of authored copy — the cases, the angles, the classifieds, the heat tiers and their notices — against 49 franchise and real-brand terms, and checks that the back page is complete and its rotation deterministic. A broken image in front of a judge is the one failure no unit test catches.
 
-Everything else is **verified in a real browser**, driven end to end: cold loads at 390 × 844 and 1280 × 720, horizontal overflow on every screen, the editor reachable in three clicks, explicit Angle Lock, the live sample flipping between on-lead and off-lead from where the stroke actually lands, untouched-Save rejection, real edits through the enabled tools, persistence across a reload, contradiction detection and its stamps, escalation through the heat tiers and the copy that changes with them, the spiked plate at the top tier, a clean edition, a blocked-`localStorage` session, the CDN-failure retry and its terminal state, and exact reveal-to-front-page-to-closing-to-wall identity — with zero console and page errors across the run.
+Everything else is **verified in a real browser**, driven end to end: cold loads at 390 × 844 and 1280 × 720, horizontal overflow on every screen, the editor reachable in three clicks, explicit Angle Lock, the live sample flipping between on-lead and off-lead from where the stroke actually lands, untouched-Save rejection, real edits through the enabled tools, persistence across a reload, two-angle coverage and its stamps, escalation through the heat tiers and the copy that changes with them, the spiked plate at the top tier, a clean edition, a blocked-`localStorage` session, the CDN-failure retry and its terminal state, and exact reveal-to-front-page-to-closing-to-wall identity — with zero console and page errors across the run.
 
 ## Vercel deployment
 
@@ -249,7 +249,7 @@ All assignment artwork, interface marks and written copy — including the class
 - The React Image Editor implementation is visible in [components/saltline/editor-stage.tsx](components/saltline/editor-stage.tsx): the code-split module load, the enabled tool dock, the error boundary, the Angle Lock gate, the loading plate, and the `<ImageEditor>` mount with every callback it uses.
 - The five cases, their ten angles and all narrative copy are data in [lib/assignments.ts](lib/assignments.ts), so the story can be read without reading the app.
 - What the desk can say about a saved export — the plate code, the extension, the size, and the in-world filing time — is a set of pure functions in [lib/export-meta.ts](lib/export-meta.ts), covered by [tests/export-meta.test.mjs](tests/export-meta.test.mjs).
-- The cross-session consequence system — the issue wall, city heat, repeat escalation, contradiction detection, the four tiers, serialising and the storage seam — is a pure module in [lib/city-heat.ts](lib/city-heat.ts) with no clock, crypto or DOM in it, covered by [tests/city-heat.test.mjs](tests/city-heat.test.mjs).
+- The cross-session consequence system — the issue wall, city heat, repeat escalation, two-angle detection, the four tiers, serialising and the storage seam — is a pure module in [lib/city-heat.ts](lib/city-heat.ts) with no clock, crypto or DOM in it, covered by [tests/city-heat.test.mjs](tests/city-heat.test.mjs).
 - The live readout beside the editor is [lib/live-read.ts](lib/live-read.ts) (composition only, no thresholds of its own) and [components/saltline/live-read-card.tsx](components/saltline/live-read-card.tsx) (the gated poll).
 - The Cala Verda classifieds are data in [lib/classifieds.ts](lib/classifieds.ts).
 - [app/page.tsx](app/page.tsx) is the screen flow and state machine only.

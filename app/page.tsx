@@ -796,7 +796,7 @@ export default function Home() {
               <p className="eyebrow">Step 02 / five field calls</p>
               <h1 id="calls-title">Choose the story<br />the city wants buried.</h1>
             </div>
-            <p>Five original field plates. One goes through the editor, into print, and onto the city wall. Replay any call to tell a different version — the desk remembers if you print both sides.</p>
+            <p>Choose a case, decide what the photograph proves, then edit it for the front page. Return to the same case with another angle and the desk must answer for two unreconciled versions.</p>
           </div>
           <div className="call-list">
             {ASSIGNMENTS.map((assignment, index) => {
@@ -832,7 +832,7 @@ export default function Home() {
                     {printed.length > 0 && (
                       <span className={`call-record ${bothSides ? 'is-contradicted' : ''}`}>
                         {bothSides
-                          ? 'BOTH SIDES PRINTED / ON THE RECORD'
+                          ? 'TWO VERSIONS PRINTED / ON THE RECORD'
                           : `ALREADY PRINTED / ${printed[0].angleStamp}`}
                       </span>
                     )}
@@ -880,6 +880,9 @@ export default function Home() {
                       <button key={angle.id} type="button" className={angle.id === selectedAngle.id ? 'is-selected' : ''} onClick={() => lockAngle(angle.id)} aria-pressed={angle.id === selectedAngle.id}>{angle.label}</button>
                     ))}
                   </div>
+                  {desk.plates.some((plate) => plate.assignmentId === selected.id && plate.angleId !== selectedAngle.id) && (
+                    <p className="angle-revision-note">This case already ran with the other lead. Print this version and both stay on the wall, unreconciled; city heat rises.</p>
+                  )}
                 </div>
               </>
             ) : (
@@ -951,7 +954,7 @@ export default function Home() {
                   <li><b>+{lastCharge.base}</b> a plate went to print</li>
                   {lastCharge.repeatLead > 0 && <li><b>+{lastCharge.repeatLead}</b> that lead was already on the wall</li>}
                   {lastCharge.repeatTechnique > 0 && <li><b>+{lastCharge.repeatTechnique}</b> the desk reused {lastCharge.repeats.length === 1 ? 'a move it has run before' : 'moves it has run before'}</li>}
-                  {lastCharge.contradiction > 0 && <li className="is-contradiction"><b>+{lastCharge.contradiction}</b> the paper printed the opposing angle on this case</li>}
+                  {lastCharge.contradiction > 0 && <li className="is-contradiction"><b>+{lastCharge.contradiction}</b> a second angle ran without reconciling the first</li>}
                 </ul>
                 {lastCharge.notices[0] && <p>{lastCharge.notices[0]}</p>}
               </div>
@@ -1037,8 +1040,8 @@ export default function Home() {
           )}
 
           {contradicted.length > 0 && (
-            <aside className="wall-contradictions" aria-label="Cases the paper has printed both sides of" data-wall-contradictions>
-              <span>THE PAPER AGAINST ITSELF / {String(contradicted.length).padStart(2, '0')}</span>
+            <aside className="wall-contradictions" aria-label="Cases with unreconciled coverage" data-wall-contradictions>
+              <span>UNRECONCILED COVERAGE / {String(contradicted.length).padStart(2, '0')}</span>
               <ul>
                 {contradicted.map((pair) => {
                   const assignment = ASSIGNMENTS.find((item) => item.id === pair.assignmentId);
@@ -1046,7 +1049,7 @@ export default function Home() {
                     <li key={pair.assignmentId}>
                       <b>{assignment?.title ?? pair.assignmentId}</b>
                       <span>
-                        {pair.angles.map((angle) => `“${angle.angleLabel}” at ${angle.createdAt}`).join(' and ')}. Both editions are on this wall. Both are signed by this desk.
+                        {pair.angles.map((angle) => `“${angle.angleLabel}” at ${angle.createdAt}`).join(' and ')}. Both versions are on this wall. The desk has not explained the change in lead.
                       </span>
                     </li>
                   );
@@ -1069,7 +1072,7 @@ export default function Home() {
                     <i>{plate.angleStamp} / {plate.createdAt}</i>
                     <small>{plate.angleOutcome}</small>
                     <b>{plate.plateCode}</b>
-                    {plate.contradicted && <em className="plate-flag plate-flag-contradicted">CONTRADICTED IN PRINT</em>}
+                    {plate.contradicted && <em className="plate-flag plate-flag-contradicted">UNRECONCILED IN PRINT</em>}
                     {plate.spiked && <em className="plate-flag plate-flag-spiked">SPIKED BY ORDER</em>}
                   </>
                 );
@@ -1181,7 +1184,7 @@ export default function Home() {
               <dl className="standing-ledger">
                 <div><dt>PLATES FILED</dt><dd>{String(desk.filed).padStart(2, '0')}</dd></div>
                 <div><dt>ON THE WALL</dt><dd>{String(desk.plates.length).padStart(2, '0')}</dd></div>
-                <div><dt>CONTRADICTIONS</dt><dd>{String(desk.contradictions.length).padStart(2, '0')}</dd></div>
+                <div><dt>UNRECONCILED</dt><dd>{String(desk.contradictions.length).padStart(2, '0')}</dd></div>
                 <div><dt>SPIKED</dt><dd>{String(desk.plates.filter((plate) => plate.spiked).length).padStart(2, '0')}</dd></div>
               </dl>
 

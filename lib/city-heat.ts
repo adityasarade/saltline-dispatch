@@ -3,8 +3,8 @@
 // Saltline used to reset on refresh. A judge who played twice got the same
 // night twice. This module is the night desk's memory: the issue wall, the
 // heat the desk has drawn, which leads and which measured moves the visitor
-// keeps leaning on, and every time the paper has contradicted itself in
-// print.
+// keeps leaning on, and every case the paper has covered from two angles
+// without reconciling the change in lead.
 //
 // Two rules hold this file together.
 //
@@ -18,7 +18,7 @@
 // 2. Heat is never an opinion about the edit. It is charged for facts the
 //    desk already measured and already discloses: a dispatch was filed, the
 //    same lead was locked again, the same measured move was used again, or
-//    the paper printed both sides of the same case. The charge is itemised
+//    the paper printed two angles on the same case. The charge is itemised
 //    and shown to the visitor in the standing sheet.
 //
 // Heat is deliberately not a wanted level, a star row, or a police meter.
@@ -79,7 +79,7 @@ export type PlateRecord = {
   height: number | null;
   press: PressRead;
   lead: LeadProof;
-  /** Set when a later dispatch printed the opposing angle on the same case. */
+  /** Legacy storage field: set when another angle ran on the same case. */
   contradicted: boolean;
   /** Set when the desk was told to hold the edition and this plate was pulled. */
   spiked: boolean;
@@ -97,7 +97,7 @@ export type DeskState = {
   techniqueUses: Record<string, number>;
   /** Newest first. */
   plates: PlateRecord[];
-  /** Ids of the cases the paper has contradicted itself on, oldest first. */
+  /** Legacy storage field: case ids with unreconciled two-angle coverage. */
   contradictions: string[];
   /** The desk's own words about the most recent filing. Newest first. */
   notices: string[];
@@ -172,11 +172,13 @@ export function repeatTechniqueCharge(priorUses: number): number {
 }
 
 /**
- * Printing the opposing angle on a case you already printed.
+ * Printing another angle on a case you already printed.
  *
  * This is the sharpest thing the desk can charge for and it is unique to
- * Saltline: every case here has two defensible truths, so printing both is a
- * newspaper contradicting itself in print, under its own masthead, twice.
+ * Saltline: every case has two defensible editorial leads. Printing both
+ * without a note makes the desk answer for its change in emphasis. The
+ * public copy says this precisely; the constant and storage fields retain
+ * their original names so existing browser editions remain readable.
  */
 export const CONTRADICTION_CHARGE = 18;
 
@@ -199,7 +201,7 @@ export type HeatCharge = {
 export type FilingInput = {
   assignmentId: string;
   angleId: string;
-  /** For the contradiction line. */
+  /** For the unreconciled-coverage notice. */
   caseTitle: string;
   angleLabel: string;
   techniques: string[];
@@ -207,8 +209,8 @@ export type FilingInput = {
 
 /**
  * Ids of plates already on the wall that printed a different angle on this
- * same case. Every case has exactly two defensible angles, so a different
- * angle on the same case is the opposing one.
+ * same case. Every case has exactly two defensible angles. Their editorial
+ * emphasis can differ without being opposite factual claims.
  */
 export function findContradictions(
   plates: PlateRecord[],
@@ -247,7 +249,7 @@ export function chargeFiling(state: DeskState, input: FilingInput): HeatCharge {
 
   if (contradiction > 0) {
     notices.push(
-      `The paper has now printed both sides of ${input.caseTitle}. Tonight's edition contradicts itself, over the same masthead, in the same hour.`,
+      `The paper has now printed both angles on ${input.caseTitle}, under the same masthead, in the same hour. The desk owes its readers an explanation for the change in lead.`,
     );
   }
 
@@ -520,7 +522,7 @@ export function standingSummary(state: DeskState): string {
   const plates = `${countWord(state.filed)} ${state.filed === 1 ? 'plate' : 'plates'}`;
 
   if (contradictions > 0) {
-    return `${capitalise(plates)} filed, and on ${countWord(contradictions)} ${contradictions === 1 ? 'case' : 'cases'} this paper has printed both sides. That is the part the city will quote back at you.`;
+    return `${capitalise(plates)} filed, and on ${countWord(contradictions)} ${contradictions === 1 ? 'case' : 'cases'} this paper has run two angles without explaining the change. That is the part the city will quote back at you.`;
   }
 
   return `${capitalise(plates)} filed tonight, one truth each. The desk is holding a consistent line, which is its own kind of exposure.`;
