@@ -633,7 +633,9 @@ export default function Home() {
           issue: activeDispatch.issue,
           createdAt: activeDispatch.createdAt,
           plateCode: activeDispatch.plateCode,
+          caseTitle: activeAssignment.title,
           place: activeAssignment.place,
+          angleLabel: activeDispatch.angleLabel,
           angleStamp: activeDispatch.angleStamp,
           closingLead: activeDispatch.closingLead,
           closingEmphasis: activeDispatch.closingEmphasis,
@@ -642,6 +644,9 @@ export default function Home() {
           playLabel: activeDispatch.press.playLabel,
           toneLabel: activeDispatch.press.toneLabel,
           ledgerLine: pressLedgerLine(activeDispatch.press),
+          heat: desk.heat,
+          heatLabel: tier.label,
+          heatProgress: gauge,
         },
         image,
       );
@@ -987,19 +992,34 @@ export default function Home() {
             </dl>
             <div className="reveal-actions">
               <button className="ink-button" onClick={() => { advanceProgress(4); setScreen('archive'); setIsClosingFrameOpen(true); }}>Close the edition <span>→</span></button>
-              <button className="text-button" disabled={isPublishing || !activeDispatch.image} onClick={() => void downloadFrontPage()}>{isPublishing ? 'Developing front page…' : 'Download front page ↓'}</button>
+              <button className="text-button front-page-action" disabled={isPublishing || !activeDispatch.image} onClick={() => void downloadFrontPage()}>{isPublishing ? 'Developing front page…' : 'Keep front page ↓'}<small>1600 × 2000 PNG</small></button>
               <button className="text-button" disabled={!activeDispatch.image} onClick={() => void downloadDispatch()}>Keep exact plate ↓</button>
             </div>
           </div>
-          <article className={`printed-dispatch accent-${activeAssignment.accent}`}>
-            <div className="dispatch-masthead"><span>SALTLINE / NIGHT EDITION / {activeDispatch.plateCode}</span><b>{activeDispatch.issue}</b></div>
+          <article className={`printed-dispatch accent-${activeAssignment.accent}`} aria-label={`Your finished ${activeAssignment.title} front page`}>
+            <div className="dispatch-masthead">
+              <strong>SALTLINE</strong>
+              <span>NIGHT EDITION / CALA VERDA</span>
+              <b>{activeDispatch.issue}</b>
+            </div>
+            <div className="dispatch-kicker"><span>{activeAssignment.title} / {activeAssignment.place}</span><span>{activeDispatch.plateCode}</span></div>
+            <h2 className="dispatch-headline"><span>{activeDispatch.closingLead}</span><em>{activeDispatch.closingEmphasis}</em></h2>
             <div className="dispatch-image">
               {activeDispatch.image
                 ? <img src={activeDispatch.image} decoding="async" alt={`Edited dispatch for ${activeAssignment.title}`} />
                 : <span className="plate-missing">NEGATIVE NOT ON FILE</span>}
             </div>
-            <div className="dispatch-caption"><span>{activeAssignment.place}</span><span>{activeDispatch.angleStamp}. EXACT UNLAYER EXPORT ON FILE.</span></div>
+            <div className="dispatch-caption"><span>EXACT UNLAYER EXPORT / {activeDispatch.press.playLabel}</span><span>{activeDispatch.createdAt}</span></div>
+            <div className="dispatch-copy">
+              <p>{activeDispatch.closingDeck}</p>
+              <dl>
+                <div><dt>ANGLE</dt><dd>{activeDispatch.angleLabel}</dd></div>
+                <div><dt>CITY HEAT</dt><dd>{tier.label} / {desk.heat} INK</dd></div>
+                <div><dt>PLATE</dt><dd>{activeDispatch.plateCode}</dd></div>
+              </dl>
+            </div>
             <div className="dispatch-stamp">{activeDispatch.angleStamp}<br />{activeDispatch.createdAt}</div>
+            <div className="dispatch-rule"><span>YOUR EDIT. YOUR ANGLE. ON THE RECORD.</span><span>ISSUE 04 / NIGHT DESK</span></div>
           </article>
         </section>
       )}

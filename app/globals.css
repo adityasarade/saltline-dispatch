@@ -1162,15 +1162,27 @@ h1 em {
   align-items: center;
   gap: 22px;
 }
+.front-page-action {
+  display: inline-grid;
+  gap: 3px;
+  text-align: left;
+}
+.front-page-action small {
+  color: var(--muted);
+  font: 700 11px/1 var(--sans);
+  letter-spacing: .1em;
+}
 .printed-dispatch {
   position: relative;
-  padding: 13px;
+  padding: 16px;
   background: var(--soft-paper);
   box-shadow: 16px 18px 0 rgba(23,26,24,.11);
   transform: rotate(1deg);
   animation: dispatch-enter .58s cubic-bezier(.2,.75,.2,1) both;
   display: grid;
-  grid-template-columns: minmax(0,1fr) auto;
+  grid-template-columns: minmax(0,1fr) minmax(150px,.42fr);
+  align-content: start;
+  color: var(--ink);
 }
 .printed-dispatch::before {
   content: '';
@@ -1182,20 +1194,76 @@ h1 em {
 .dispatch-masthead,
 .dispatch-caption {
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 4px;
-  color: var(--ink);
-  font: 700 9px/1 var(--sans);
+  align-items: center;
+  gap: 12px;
+  font: 700 11px/1 var(--sans);
   letter-spacing: .12em;
 }
+.dispatch-masthead {
+  min-height: 63px;
+  padding: 11px 14px;
+  background: var(--ink);
+  color: var(--soft-paper);
+}
+.dispatch-masthead strong {
+  font: 900 30px/.85 var(--sans);
+  letter-spacing: -.035em;
+}
+.dispatch-masthead span {
+  margin-right: auto;
+  color: #b8b4a9;
+  font-size: 10px;
+}
 .dispatch-masthead b {
-  color: var(--coral-copy);
+  align-self: stretch;
+  min-width: 92px;
+  margin: -11px -14px -11px 0;
+  display: grid;
+  place-items: center;
+  background: var(--coral);
+  color: var(--soft-paper);
+  font-size: 11px;
 }
 .accent-teal .dispatch-masthead b {
-  color: var(--teal-copy);
+  background: var(--teal-copy);
 }
 .accent-gold .dispatch-masthead b {
+  background: var(--gold-copy);
+  color: var(--ink);
+}
+.dispatch-kicker {
+  grid-column: 1/-1;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 4px 8px;
+  border-bottom: 1px solid rgba(23,26,24,.5);
+  color: var(--coral-copy);
+  font: 700 11px/1.2 var(--sans);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.dispatch-kicker span:last-child {
+  color: var(--muted);
+}
+.dispatch-headline {
+  grid-column: 1/-1;
+  margin: 16px 4px 17px;
+  font: 400 clamp(38px,4.2vw,68px)/.8 Georgia,serif;
+  letter-spacing: -.065em;
+}
+.dispatch-headline span,
+.dispatch-headline em {
+  display: block;
+}
+.dispatch-headline em {
+  color: var(--coral-copy);
+  font-weight: 400;
+}
+.accent-teal .dispatch-headline em {
+  color: var(--teal-copy);
+}
+.accent-gold .dispatch-headline em {
   color: var(--gold-copy);
 }
 .dispatch-image {
@@ -1213,21 +1281,61 @@ h1 em {
   animation: plate-reveal .64s .12s cubic-bezier(.2,.8,.2,1) both;
 }
 .dispatch-caption {
+  grid-column: 1/-1;
+  justify-content: space-between;
   border-top: 1px solid var(--ink);
-  font-size: 8px;
-  line-height: 1.15;
-  grid-column: 1;
+  padding: 8px 4px 10px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.2;
 }
-.dispatch-caption span:last-child {
-  max-width: 250px;
-  text-align: right;
+.dispatch-copy {
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(124px,.62fr);
+  gap: 17px;
+  padding: 11px 4px 13px;
+  border-top: 4px solid var(--coral-copy);
+}
+.accent-teal .dispatch-copy {
+  border-color: var(--teal-copy);
+}
+.accent-gold .dispatch-copy {
+  border-color: var(--gold-copy);
+}
+.dispatch-copy p {
+  margin: 0;
+  font: 400 16px/1.4 Georgia,serif;
+}
+.dispatch-copy dl {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 1px solid rgba(23,26,24,.24);
+}
+.dispatch-copy dl div + div {
+  margin-top: 8px;
+}
+.dispatch-copy dt,
+.dispatch-copy dd {
+  margin: 0;
+  font: 700 10px/1.25 var(--sans);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.dispatch-copy dt {
+  color: var(--coral-copy);
+}
+.dispatch-copy dd {
+  margin-top: 2px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
 .dispatch-stamp {
-  position: absolute;
-  right: 18px;
-  bottom: -46px;
-  width: 73px;
-  height: 73px;
+  grid-column: 2;
+  align-self: center;
+  justify-self: center;
+  width: 92px;
+  height: 92px;
   border: 2px solid var(--coral-copy);
   background: rgba(240,234,220,.96);
   display: grid;
@@ -1235,7 +1343,7 @@ h1 em {
   text-align: center;
   transform: rotate(-11deg);
   color: var(--coral-copy);
-  font: 900 9px/.93 var(--sans);
+  font: 900 10px/.95 var(--sans);
   letter-spacing: .06em;
   animation: stamp-land .38s .38s cubic-bezier(.2,.9,.2,1.2) both;
 }
@@ -1248,17 +1356,20 @@ h1 em {
   color: var(--gold-copy);
 }
 
-/* The printed sheet is a two-column grid so the stamp can sit in the
-   margin instead of hanging off the bottom edge. */
 .dispatch-masthead,
-.dispatch-image {
+.dispatch-image,
+.dispatch-rule {
   grid-column: 1/-1;
 }
-.dispatch-stamp {
-  position: static;
-  grid-column: 2;
-  align-self: center;
-  margin: 0 4px 0 12px;
+.dispatch-rule {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 4px 2px;
+  border-top: 1px solid var(--ink);
+  color: var(--muted);
+  font: 700 10px/1 var(--sans);
+  letter-spacing: .1em;
 }
 @keyframes dispatch-enter {
   from {
@@ -1837,10 +1948,27 @@ h1 em {
     padding-bottom: 14px;
   }
   .printed-dispatch {
-    max-height: 540px;
+    max-height: none;
   }
   .dispatch-image {
-    max-height: 465px;
+    height: 248px;
+    max-height: none;
+    aspect-ratio: auto;
+  }
+  .dispatch-masthead {
+    min-height: 48px;
+  }
+  .dispatch-headline {
+    margin-top: 10px;
+    margin-bottom: 11px;
+    font-size: clamp(34px,4.1vw,52px);
+  }
+  .dispatch-copy {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .dispatch-copy p {
+    font-size: 14px;
   }
 }
 @media (min-width: 1200px) {
@@ -2007,11 +2135,32 @@ h1 em {
     padding: 8px;
   }
   .dispatch-masthead {
+    min-height: 50px;
+    padding: 8px 10px;
     font-size: 7px;
   }
+  .dispatch-masthead strong {
+    font-size: 25px;
+  }
+  .dispatch-masthead span {
+    display: none;
+  }
+  .dispatch-masthead b {
+    min-width: 80px;
+    margin: -8px -10px -8px 0;
+  }
+  .dispatch-headline {
+    font-size: clamp(36px,11vw,52px);
+  }
+  .dispatch-copy {
+    grid-template-columns: 1fr;
+  }
+  .dispatch-copy dl {
+    padding: 10px 0 0;
+    border-top: 1px solid rgba(23,26,24,.24);
+    border-left: 0;
+  }
   .dispatch-stamp {
-    right: 12px;
-    bottom: -36px;
     width: 58px;
     height: 58px;
     font-size: 8px;

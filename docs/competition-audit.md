@@ -68,7 +68,7 @@ No implementation can guarantee a subjective competition result, but closing eve
 
 The public sample remains crowded with wanted posters, character cards, casefiles, and evidence-board workflows. Saltline's strongest separation is editorial consequence: two defensible truths exist in the same plate, the user must lock a lead, and the exact saved pixels determine the published record. The primary weakness was onboarding repetition—the landing already explained the loop, then a two-page first-shift modal explained it again. The main route now goes directly from the landing desk to all five calls.
 
-The reveal now offers a 1600 × 2000 newspaper front page that preserves the exact Unlayer export without cropping and combines it with the selected angle, case, plate code, outcome copy, and edition metadata. This creates a more distinctive keepsake while retaining the raw exact-plate download.
+The reveal now renders a complete miniature front page as the immediate payoff, then offers the matching 1600 × 2000 newspaper PNG. Both preserve the exact Unlayer export without cropping and combine it with the selected angle, story headline, case, plate code, press reading, City Heat, and edition metadata. This creates a more distinctive keepsake while retaining the raw exact-plate download.
 
 Browser acceptance on desktop and 390 × 844 covered the shortened route, Angle Lock, untouched-Save rejection, a real editor change, exact saved reveal, and native-size front-page generation. Lint plus both production build paths pass. No implementation can guarantee a subjective prize result.
 

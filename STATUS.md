@@ -11,6 +11,12 @@ Canonical URL: **https://saltline-dispatch.vercel.app** · Source: **https://git
 - The local production flow was rechecked from a clean browser: first plate → editor Save → reveal → closing frame → second angle → warning → Save → +18 heat notice → both flagged archive plates → reload with the two filings intact.
 - `npm test` passes all 87 tests, `npm run lint` passes, `npm run check:content` passes, and `npm run build:vercel` passes.
 
+## Front-page pass — 21 September 2026 (IST)
+
+- The publish payoff is now a complete miniature front page with masthead, headline, exact saved plate, story deck, selected angle, plate receipt, City Heat, and edition folio—not a framed image with a stamp.
+- The 1600 × 2000 PNG mirrors that richer hierarchy. Crop geometry still chooses banner, lead, or column treatment; the exact Unlayer export is drawn once, unfiltered and unobstructed.
+- The keepsake action states its native dimensions before download, while the raw exact-plate download remains available separately.
+
 ## Verified 17 September 2026 (IST)
 
 Automated: `npm run lint`, `npx tsc --noEmit`, `npm test` (**87 tests**), `npm run check:content`, `npm run build` (Vinext) and `npm run build:vercel` (the deploying Next build) all pass.

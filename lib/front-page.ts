@@ -28,7 +28,9 @@ export type FrontPageInput = {
   issue: string;
   createdAt: string;
   plateCode: string;
+  caseTitle: string;
   place: string;
+  angleLabel: string;
   angleStamp: string;
   closingLead: string;
   closingEmphasis: string;
@@ -37,6 +39,9 @@ export type FrontPageInput = {
   playLabel: string;
   toneLabel: string;
   ledgerLine: string;
+  heat: number;
+  heatLabel: string;
+  heatProgress: number;
 };
 
 type Rect = { x: number; y: number; width: number; height: number };
@@ -145,11 +150,22 @@ export async function renderFrontPage(
   // Slug line.
   context.fillStyle = CORAL;
   context.font = '700 22px Arial, sans-serif';
-  context.fillText(`${input.place.toUpperCase()} / ${input.plateCode}`, MARGIN + 2, 292);
+  context.fillText(`${input.caseTitle.toUpperCase()} / ${input.place.toUpperCase()}`, MARGIN + 2, 286);
+  context.textAlign = 'right';
+  context.fillStyle = MUTED;
+  context.font = '16px ui-monospace, monospace';
+  context.fillText(`PLATE ${input.plateCode}`, WIDTH - MARGIN, 286);
+  context.textAlign = 'left';
+  context.strokeStyle = INK;
+  context.lineWidth = 2;
+  context.beginPath();
+  context.moveTo(MARGIN, 312);
+  context.lineTo(WIDTH - MARGIN, 312);
+  context.stroke();
 
   // The footer band is fixed; every layout flows above it.
-  const FOOTER_PRESS = 1772;
-  const FOOTER_LEDGER = 1806;
+  const FOOTER_PRESS = 1780;
+  const FOOTER_LEDGER = 1815;
   const FOOTER_RULE = 1950;
 
   const headline = (top: number, maxWidth: number) => {
@@ -169,42 +185,73 @@ export async function renderFrontPage(
 
   if (input.play === 'banner') {
     // Wide cut: the plate runs across the top, headline beneath it.
-    const rect = fitBox(image, MARGIN, 336, COLUMN_WIDTH, 620);
+    const rect = fitBox(image, MARGIN, 348, COLUMN_WIDTH, 800);
+    rect.x += (COLUMN_WIDTH - rect.width) / 2;
     drawPlate(context, image, rect);
-    const afterHeadline = headline(rect.y + rect.height + 150, COLUMN_WIDTH);
-    deck(MARGIN, Math.max(afterHeadline + 40, 1560), COLUMN_WIDTH, 3);
+    const afterHeadline = headline(rect.y + rect.height + 126, COLUMN_WIDTH);
+    deck(MARGIN, Math.max(afterHeadline + 30, 1530), 1050, 3);
   } else if (input.play === 'column') {
     // Tight cut: tall plate on the left, deck set alongside it.
-    const afterHeadline = headline(405, 1320);
-    const rect = fitBox(image, MARGIN, Math.max(afterHeadline + 60, 765), 700, 950);
+    const afterHeadline = headline(410, 1320);
+    const rect = fitBox(image, MARGIN, Math.max(afterHeadline + 45, 760), 700, 760);
     drawPlate(context, image, rect);
-    deck(MARGIN + 764, rect.y + 35, WIDTH - MARGIN - (MARGIN + 764), 12);
+    deck(MARGIN + 764, rect.y + 35, WIDTH - MARGIN - (MARGIN + 764), 10);
   } else {
-    // Standard night lead.
-    headline(405, 1320);
-    const rect = fitBox(image, MARGIN, 765, COLUMN_WIDTH, 950);
+    // Standard night lead: image at newsstand scale, deck in a real side
+    // column rather than shrinking below the fold.
+    const afterHeadline = headline(410, 1320);
+    const rect = fitBox(image, MARGIN, Math.max(afterHeadline + 45, 735), 1030, 720);
     drawPlate(context, image, rect);
-    deck(MARGIN, 1846, 1160, 3);
+    deck(rect.x + rect.width + 52, rect.y + 32, WIDTH - MARGIN - (rect.x + rect.width + 52), 12);
   }
 
-  // Footer: press call, the disclosed measurement, stamp, and rule.
+  // Footer: press call, the disclosed measurement, City Heat, stamp, and rule.
+  context.fillStyle = CORAL;
+  context.fillRect(MARGIN, 1728, COLUMN_WIDTH, 7);
   context.fillStyle = INK;
   context.font = '700 20px Arial, sans-serif';
-  context.fillText(`${input.angleStamp} / ${input.playLabel} / ${input.toneLabel}`, MARGIN, FOOTER_PRESS);
+  context.fillText(`${input.angleLabel.toUpperCase()} / ${input.playLabel} / ${input.toneLabel}`, MARGIN, FOOTER_PRESS);
   context.fillStyle = MUTED;
   context.font = '16px ui-monospace, monospace';
-  context.fillText(input.ledgerLine, MARGIN, FOOTER_LEDGER);
+  context.fillText(input.ledgerLine, MARGIN, FOOTER_LEDGER, 980);
+
+  context.fillStyle = INK;
+  context.font = '700 16px Arial, sans-serif';
+  context.fillText('EXACT UNLAYER EXPORT / PIXELS KEPT INTACT', MARGIN, 1862);
+  context.fillStyle = MUTED;
+  context.font = '15px ui-monospace, monospace';
+  context.fillText(`FILED ${input.createdAt} / ${input.plateCode}`, MARGIN, 1894);
+
+  const heatX = 1112;
+  const heatY = 1758;
+  const heatWidth = 392;
+  context.fillStyle = 'rgba(23,26,24,.055)';
+  context.fillRect(heatX, heatY, heatWidth, 142);
+  context.fillStyle = INK;
+  context.font = '700 15px Arial, sans-serif';
+  context.fillText(`CITY HEAT / ${input.heatLabel}`, heatX + 20, heatY + 32, heatWidth - 40);
+  context.fillStyle = MUTED;
+  context.font = '14px ui-monospace, monospace';
+  context.fillText(`${String(input.heat).padStart(2, '0')} INK`, heatX + 20, heatY + 59);
+  const gaugeY = heatY + 83;
+  const segmentGap = 7;
+  const segmentWidth = (heatWidth - 40 - segmentGap * 4) / 5;
+  const filledSegments = Math.min(5, Math.max(input.heat > 0 ? 1 : 0, Math.ceil(input.heatProgress * 5)));
+  for (let segment = 0; segment < 5; segment += 1) {
+    context.fillStyle = segment < filledSegments ? CORAL_FLAT : 'rgba(23,26,24,.18)';
+    context.fillRect(heatX + 20 + segment * (segmentWidth + segmentGap), gaugeY, segmentWidth, 13);
+  }
 
   context.strokeStyle = CORAL;
   context.lineWidth = 6;
-  context.strokeRect(1290, 1765, 220, 142);
+  context.strokeRect(1248, 1554, 262, 132);
   context.save();
-  context.translate(1400, 1835);
+  context.translate(1379, 1619);
   context.rotate(-0.07);
   context.fillStyle = CORAL;
   context.textAlign = 'center';
   context.font = '900 22px Arial Black, Arial, sans-serif';
-  context.fillText(input.angleStamp, 0, 0, 184);
+  context.fillText(input.angleStamp, 0, 0, 220);
   context.font = '17px ui-monospace, monospace';
   context.fillText(input.createdAt, 0, 34);
   context.restore();
