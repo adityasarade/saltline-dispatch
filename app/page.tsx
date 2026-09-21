@@ -40,6 +40,42 @@ import { classifiedsFor } from '@/lib/classifieds';
 
 type Screen = 'desk' | 'calls' | 'edit' | 'reveal' | 'archive';
 
+type JourneyGuide = {
+  key: string;
+  step: string;
+  title: string;
+  copy: string;
+};
+
+const GUIDE_STORAGE = 'saltline-journey-guide-v1';
+
+function journeyGuide(screen: Screen, angleLocked: boolean): JourneyGuide {
+  if (screen === 'desk') return {
+    key: 'briefing', step: '01 / 06', title: 'You are tonight’s picture editor.',
+    copy: 'Take one field call, decide what its photograph proves, make that lead visible in the image editor, and send your exact export to print.',
+  };
+  if (screen === 'calls') return {
+    key: 'calls', step: '02 / 06', title: 'Choose one story to investigate.',
+    copy: 'Each case contains two defensible angles. Select any card now; you will choose its angle after the field plate opens.',
+  };
+  if (screen === 'edit' && !angleLocked) return {
+    key: 'angle-lock', step: '03 / 06', title: 'Lock the headline before editing.',
+    copy: 'Choose one Angle Lock beside the plate. It changes the recommended edit, the printed headline, and the consequence recorded on the issue wall.',
+  };
+  if (screen === 'edit') return {
+    key: 'image-desk', step: '04 / 06', title: 'Make the chosen lead unmistakable.',
+    copy: 'Follow START HERE for the fastest route, make one visible move, then use the editor’s Save control. Saltline measures and prints that exact export.',
+  };
+  if (screen === 'reveal') return {
+    key: 'published', step: '05 / 06', title: 'Read what your edit became.',
+    copy: 'The proof pair shows source versus saved export. The page, lead verdict and CITY HEAT explain how your framing changed the edition.',
+  };
+  return {
+    key: 'issue-wall', step: '06 / 06', title: 'The paper remembers every version.',
+    copy: 'Open a plate to revisit it, run another case, or read the standing sheet. Printing opposing angles keeps both versions and raises CITY HEAT.',
+  };
+}
+
 /** Whether this browser is actually keeping the night between visits. */
 type DeskMemory = 'pending' | 'persisting' | 'trimmed' | 'memory';
 
@@ -85,6 +121,10 @@ export default function Home() {
   const [discardAsk, setDiscardAsk] = useState<DiscardAsk | null>(null);
   const [deskNotice, setDeskNotice] = useState('');
   const [soundOn, setSoundOn] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guidesMuted, setGuidesMuted] = useState(false);
+  const [guideReady, setGuideReady] = useState(false);
+  const seenGuides = useRef(new Set<string>());
   const startButtonRef = useRef<HTMLButtonElement>(null);
   const closingDialogRef = useRef<HTMLElement>(null);
   const standingDialogRef = useRef<HTMLElement>(null);
@@ -247,6 +287,37 @@ export default function Home() {
     () => selected.angles.find((angle) => angle.id === selectedAngleId) ?? null,
     [selected, selectedAngleId],
   );
+
+  const currentGuide = journeyGuide(screen, Boolean(selectedAngle));
+  const persistGuides = useCallback((muted: boolean) => {
+    try {
+      window.localStorage.setItem(GUIDE_STORAGE, JSON.stringify({ muted, seen: [...seenGuides.current] }));
+    } catch {
+      /* The guide remains available for this tab when preferences cannot persist. */
+    }
+  }, []);
+
+  useEffect(() => {
+    let muted = false;
+    try {
+      const stored = JSON.parse(window.localStorage.getItem(GUIDE_STORAGE) || 'null') as { muted?: boolean; seen?: string[] } | null;
+      if (stored?.seen) seenGuides.current = new Set(stored.seen);
+      muted = Boolean(stored?.muted);
+    } catch {
+      /* A damaged preference is treated as a first visit. */
+    }
+    queueMicrotask(() => {
+      setGuidesMuted(muted);
+      setGuideReady(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!guideReady || guidesMuted || seenGuides.current.has(currentGuide.key)) return;
+    seenGuides.current.add(currentGuide.key);
+    persistGuides(false);
+    queueMicrotask(() => setGuideOpen(true));
+  }, [currentGuide, guideReady, guidesMuted, persistGuides]);
 
   const activeAssignment = useMemo(() => {
     const assignmentId = activeDispatch?.assignmentId ?? selected.id;
@@ -688,6 +759,19 @@ export default function Home() {
           <span>{String(desk.filed).padStart(2, '0')} FILED TONIGHT</span>
         </div>
         <button
+          className="guide-toggle"
+          onClick={() => {
+            if (guidesMuted) {
+              setGuidesMuted(false);
+              persistGuides(false);
+            }
+            setGuideOpen(true);
+          }}
+          aria-expanded={guideOpen}
+        >
+          GUIDE
+        </button>
+        <button
           className={`desk-sound ${soundOn ? 'is-on' : ''}`}
           onClick={() => void toggleSound()}
           aria-pressed={soundOn}
@@ -741,6 +825,30 @@ export default function Home() {
           );
         })}
       </nav>
+
+      {guideOpen && !discardAsk && !isPressRunning && !isClosingFrameOpen && !isStandingOpen && (
+        <aside className="journey-guide" role="dialog" aria-labelledby="saltline-guide-title">
+          <div className="journey-guide-head">
+            <span>{currentGuide.step} / NIGHT DESK GUIDE</span>
+            <button aria-label="Close guide" onClick={() => setGuideOpen(false)}>CLOSE ×</button>
+          </div>
+          <h2 id="saltline-guide-title">{currentGuide.title}</h2>
+          <p>{currentGuide.copy}</p>
+          <div className="journey-guide-actions">
+            <button className="ink-button" onClick={() => setGuideOpen(false)}>Understood <span>→</span></button>
+            <button
+              className="text-button"
+              onClick={() => {
+                setGuidesMuted(true);
+                setGuideOpen(false);
+                persistGuides(true);
+              }}
+            >
+              Stop tips
+            </button>
+          </div>
+        </aside>
+      )}
 
       {screen === 'desk' && (
         <section ref={screenRef} className="desk-screen screen" aria-labelledby="desk-title" tabIndex={-1}>

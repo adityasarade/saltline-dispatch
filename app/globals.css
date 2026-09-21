@@ -105,6 +105,7 @@ button:focus-visible {
 }
 .wordmark,
 .archive-count,
+.guide-toggle,
 .process button,
 .back-button,
 .text-button,
@@ -186,6 +187,75 @@ button:focus-visible {
   border: 1px solid var(--ink);
   font-size: 12px;
   letter-spacing: 0;
+}
+.guide-toggle {
+  border: 0;
+  border-bottom: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  padding: 5px 1px;
+  font: 800 10px/1 var(--sans);
+  letter-spacing: .14em;
+  cursor: pointer;
+}
+
+/* Contextual instructions sit above the paper instead of permanently
+   occupying layout space. One compact card appears at each new desk state. */
+.journey-guide {
+  position: fixed;
+  z-index: 80;
+  right: 22px;
+  bottom: 22px;
+  width: min(400px, calc(100vw - 32px));
+  padding: 20px;
+  background: var(--soft-paper);
+  border: 1px solid var(--ink);
+  border-top: 8px solid var(--coral);
+  box-shadow: 12px 14px 0 rgba(23,26,24,.2), 0 22px 60px rgba(23,26,24,.28);
+}
+.journey-guide-head,
+.journey-guide-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.journey-guide-head {
+  color: var(--coral-copy);
+  font: 800 10px/1.3 var(--sans);
+  letter-spacing: .13em;
+}
+.journey-guide-head button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px;
+  font: 800 9px/1 var(--sans);
+  letter-spacing: .1em;
+  cursor: pointer;
+}
+.journey-guide h2 {
+  margin: 14px 0 8px;
+  font: 700 27px/1 Georgia,serif;
+  letter-spacing: -.02em;
+}
+.journey-guide>p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.journey-guide-actions {
+  justify-content: flex-start;
+  margin-top: 17px;
+}
+.journey-guide-actions .ink-button {
+  min-height: 40px;
+  padding: 10px 16px;
+  font-size: 11px;
+}
+.journey-guide-actions .text-button {
+  font-size: 11px;
 }
 
 /* Desk sound toggle. Sits beside the issue count, reads as desk furniture. */
@@ -3006,6 +3076,23 @@ h1 em {
 }
 
 @media (max-width: 560px) {
+  .journey-guide {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100vw - 24px);
+    padding: 17px;
+    box-shadow: 7px 8px 0 rgba(23,26,24,.2), 0 18px 44px rgba(23,26,24,.25);
+  }
+  .journey-guide h2 {
+    font-size: 23px;
+  }
+  .journey-guide>p {
+    font-size: 14px;
+  }
+  .guide-toggle {
+    font-size: 9px;
+    letter-spacing: .09em;
+  }
   .heat-strip {
     gap: 9px;
     padding: 7px 24px;
