@@ -174,7 +174,12 @@ function AngleLockGate({ assignment, onLockAngle }: AngleLockGateProps) {
         <h2>Lock the lead<br /><em>before you mark it.</em></h2>
         <div className="angle-gate-options" role="group" aria-label="Choose the dispatch angle">
           {assignment.angles.map((angle, index) => (
-            <button key={angle.id} type="button" onClick={() => onLockAngle(angle.id)}>
+            <button
+              key={angle.id}
+              type="button"
+              data-guide-target={index === 0 ? 'angle' : undefined}
+              onClick={() => onLockAngle(angle.id)}
+            >
               <span>ANGLE 0{index + 1}</span>
               <strong>{angle.label}</strong>
               <small>{angle.prompt}</small>
@@ -252,7 +257,12 @@ export function EditorStage({
         <span><i className="live-dot" /> UNLAYER REACT IMAGE EDITOR / FULL-RES FIELD PLATE</span>
         <span>{!angle ? 'ANGLE LOCK REQUIRED' : heldEdition ? 'EDITION HELD / SAVE STILL PRINTS' : 'SAVE = PUBLISH'}</span>
       </div>
-      <div className="editor-shell" aria-busy={Boolean(angle) && !editorReady && !editorFailed}>
+      <div
+        className="editor-shell"
+        data-guide-target="editor"
+        tabIndex={-1}
+        aria-busy={Boolean(angle) && !editorReady && !editorFailed}
+      >
         {!angle && <AngleLockGate assignment={assignment} onLockAngle={onLockAngle} />}
         {angle && !editorReady && <EditorLoader assignment={assignment} failed={editorFailed} />}
         {angle && (

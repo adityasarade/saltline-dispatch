@@ -85,7 +85,9 @@ Recommended attachment: `public/saltline-dispatch.gif`.
 
 ## LinkedIn launch post
 
-I built Saltline Dispatch: the 2:13 AM edition for Unlayer's Build With React Image Editor Challenge.
+An image can tell two true stories. Which one gets page one?
+
+I built **Saltline Dispatch: the 2:13 AM edition** for Unlayer's Build With React Image Editor Challenge.
 
 It is an original coastal-crime editorial experience set in Cala Verda. Five late-night calls each contain two defensible truths. You choose a case, lock the angle you want the evidence to prove, and use React Image Editor to make that lead visible.
 

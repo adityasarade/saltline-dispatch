@@ -45,6 +45,8 @@ type JourneyGuide = {
   step: string;
   title: string;
   copy: string;
+  action: string;
+  target: string;
 };
 
 const GUIDE_STORAGE = 'saltline-journey-guide-v1';
@@ -53,26 +55,38 @@ function journeyGuide(screen: Screen, angleLocked: boolean): JourneyGuide {
   if (screen === 'desk') return {
     key: 'briefing', step: '01 / 05', title: 'You are tonight’s picture editor.',
     copy: 'Take one field call, decide what its photograph proves, make that lead visible in the image editor, and send your exact export to print.',
+    action: 'Start tonight’s run',
+    target: '[data-guide-target="start"]',
   };
   if (screen === 'calls') return {
     key: 'calls', step: '02 / 05', title: 'Choose one story to investigate.',
     copy: 'Each case contains two defensible angles. Select any card now; you will choose its angle after the field plate opens.',
+    action: 'Open a field call',
+    target: '[data-guide-target="case"]',
   };
   if (screen === 'edit' && !angleLocked) return {
     key: 'angle-lock', step: '03 / 05', title: 'Lock the headline before editing.',
     copy: 'Choose one Angle Lock beside the plate. It changes the recommended edit, the printed headline, and the consequence recorded on the issue wall.',
+    action: 'Lock an angle',
+    target: '[data-guide-target="angle"]',
   };
   if (screen === 'edit') return {
     key: 'image-desk', step: '03 / 05', title: 'Make the chosen lead unmistakable.',
     copy: 'Follow START HERE for the fastest route, make one visible move, then use the editor’s Save control. Saltline measures and prints that exact export.',
+    action: 'Work the plate',
+    target: '[data-guide-target="editor"]',
   };
   if (screen === 'reveal') return {
     key: 'published', step: '04 / 05', title: 'Read what your edit became.',
     copy: 'The proof pair shows source versus saved export. The page, lead verdict and CITY HEAT explain how your framing changed the edition.',
+    action: 'Read my edition',
+    target: '[data-guide-target="reveal"]',
   };
   return {
     key: 'issue-wall', step: '05 / 05', title: 'The paper remembers every version.',
     copy: 'Open a plate to revisit it, run another case, or read the standing sheet. Printing opposing angles keeps both versions and raises CITY HEAT.',
+    action: 'Open the issue wall',
+    target: '[data-guide-target="archive"]',
   };
 }
 
@@ -289,6 +303,22 @@ export default function Home() {
   );
 
   const currentGuide = journeyGuide(screen, Boolean(selectedAngle));
+  const followGuide = useCallback(() => {
+    const selector = currentGuide.target;
+    setGuideOpen(false);
+    window.requestAnimationFrame(() => {
+      const target = document.querySelector<HTMLElement>(selector);
+      if (!target) return;
+      target.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'center',
+        inline: 'nearest',
+      });
+      target.focus({ preventScroll: true });
+      target.classList.add('guide-target-highlight');
+      window.setTimeout(() => target.classList.remove('guide-target-highlight'), 1800);
+    });
+  }, [currentGuide]);
   const persistGuides = useCallback((muted: boolean) => {
     try {
       window.localStorage.setItem(GUIDE_STORAGE, JSON.stringify({ muted, seen: [...seenGuides.current] }));
@@ -848,7 +878,7 @@ export default function Home() {
           <h2 id="saltline-guide-title">{currentGuide.title}</h2>
           <p id="saltline-guide-copy">{currentGuide.copy}</p>
           <div className="journey-guide-actions">
-            <button className="ink-button" onClick={() => setGuideOpen(false)}>Understood <span>→</span></button>
+            <button className="ink-button" onClick={followGuide}>{currentGuide.action} <span>→</span></button>
             <button
               className="text-button"
               onClick={() => {
@@ -870,7 +900,7 @@ export default function Home() {
             <h1 id="desk-title">The city plays dumb.<br /><em>Make the proof loud.</em></h1>
             <p className="intro">Five late-night calls. Two defensible truths inside every field plate. Lock the lead, use React Image Editor to make it visible, and your exact saved image decides what Cala Verda wakes up believing.</p>
             <div className="desk-actions">
-              <button ref={startButtonRef} className="ink-button" onClick={browseFieldCalls}>Start tonight&apos;s run <span>→</span></button>
+              <button ref={startButtonRef} className="ink-button" data-guide-target="start" onClick={browseFieldCalls}>Start tonight&apos;s run <span>→</span></button>
               <span className="edition-note">5 cases<br />1 print to make</span>
             </div>
             {desk.filed > 0 ? (
@@ -936,6 +966,7 @@ export default function Home() {
                 >
                   <button
                     className="call-card-select"
+                    data-guide-target={index === 0 ? 'case' : undefined}
                     onClick={() => beginAssignment(assignment.id)}
                     onPointerDown={() => prefetchPlate(assignment.image)}
                     aria-label={`Open ${assignment.title} in the evidence editor`}
@@ -1061,7 +1092,7 @@ export default function Home() {
       )}
 
       {screen === 'reveal' && activeDispatch && (
-        <section ref={screenRef} className="reveal-screen screen" aria-labelledby="reveal-title" tabIndex={-1}>
+        <section ref={screenRef} className="reveal-screen screen" data-guide-target="reveal" aria-labelledby="reveal-title" tabIndex={-1}>
           <div className="reveal-aside">
             <p className="eyebrow">Step 04 / published at {activeDispatch.createdAt}</p>
             <h1 id="reveal-title">Your edit is<br /><em>on the record.</em></h1>
@@ -1146,7 +1177,7 @@ export default function Home() {
       )}
 
       {screen === 'archive' && (
-        <section ref={screenRef} className="archive-screen screen" aria-labelledby="archive-title" tabIndex={-1}>
+        <section ref={screenRef} className="archive-screen screen" data-guide-target="archive" aria-labelledby="archive-title" tabIndex={-1}>
           <div className="archive-heading">
             <div>
               <p className="eyebrow">Step 05 / night edition archive</p>

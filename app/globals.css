@@ -66,6 +66,22 @@ button:focus-visible {
   outline: 3px solid var(--coral);
   outline-offset: 4px;
 }
+.guide-target-highlight {
+  animation: guide-target-pulse 1.7s ease-out both;
+}
+@keyframes guide-target-pulse {
+  0%,
+  100% {
+    outline-color: transparent;
+    outline-offset: 12px;
+  }
+  24%,
+  72% {
+    outline: 4px solid var(--coral);
+    outline-offset: 5px;
+    box-shadow: 0 0 0 7px rgba(228, 84, 63, 0.25);
+  }
+}
 
 /* ==========================================================================
    PAGE SHELL AND PAPER GRAIN
@@ -2308,6 +2324,11 @@ h1 em {
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
+  .guide-target-highlight {
+    animation: none !important;
+    outline: 4px solid var(--coral);
+    outline-offset: 5px;
+  }
   *,
   *::before,
   *::after {
