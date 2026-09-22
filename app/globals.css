@@ -205,7 +205,7 @@ button:focus-visible {
   position: fixed;
   z-index: 80;
   right: 22px;
-  bottom: 22px;
+  top: 166px;
   width: min(400px, calc(100vw - 32px));
   padding: 20px;
   background: var(--soft-paper);
@@ -3078,9 +3078,11 @@ h1 em {
 @media (max-width: 560px) {
   .journey-guide {
     right: 12px;
-    bottom: 12px;
+    top: 150px;
     width: calc(100vw - 24px);
     padding: 17px;
+    max-height: calc(100svh - 162px);
+    overflow: auto;
     box-shadow: 7px 8px 0 rgba(23,26,24,.2), 0 18px 44px rgba(23,26,24,.25);
   }
   .journey-guide h2 {

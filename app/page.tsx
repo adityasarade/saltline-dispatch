@@ -51,27 +51,27 @@ const GUIDE_STORAGE = 'saltline-journey-guide-v1';
 
 function journeyGuide(screen: Screen, angleLocked: boolean): JourneyGuide {
   if (screen === 'desk') return {
-    key: 'briefing', step: '01 / 06', title: 'You are tonight’s picture editor.',
+    key: 'briefing', step: '01 / 05', title: 'You are tonight’s picture editor.',
     copy: 'Take one field call, decide what its photograph proves, make that lead visible in the image editor, and send your exact export to print.',
   };
   if (screen === 'calls') return {
-    key: 'calls', step: '02 / 06', title: 'Choose one story to investigate.',
+    key: 'calls', step: '02 / 05', title: 'Choose one story to investigate.',
     copy: 'Each case contains two defensible angles. Select any card now; you will choose its angle after the field plate opens.',
   };
   if (screen === 'edit' && !angleLocked) return {
-    key: 'angle-lock', step: '03 / 06', title: 'Lock the headline before editing.',
+    key: 'angle-lock', step: '03 / 05', title: 'Lock the headline before editing.',
     copy: 'Choose one Angle Lock beside the plate. It changes the recommended edit, the printed headline, and the consequence recorded on the issue wall.',
   };
   if (screen === 'edit') return {
-    key: 'image-desk', step: '04 / 06', title: 'Make the chosen lead unmistakable.',
+    key: 'image-desk', step: '03 / 05', title: 'Make the chosen lead unmistakable.',
     copy: 'Follow START HERE for the fastest route, make one visible move, then use the editor’s Save control. Saltline measures and prints that exact export.',
   };
   if (screen === 'reveal') return {
-    key: 'published', step: '05 / 06', title: 'Read what your edit became.',
+    key: 'published', step: '04 / 05', title: 'Read what your edit became.',
     copy: 'The proof pair shows source versus saved export. The page, lead verdict and CITY HEAT explain how your framing changed the edition.',
   };
   return {
-    key: 'issue-wall', step: '06 / 06', title: 'The paper remembers every version.',
+    key: 'issue-wall', step: '05 / 05', title: 'The paper remembers every version.',
     copy: 'Open a plate to revisit it, run another case, or read the standing sheet. Printing opposing angles keeps both versions and raises CITY HEAT.',
   };
 }
@@ -318,6 +318,15 @@ export default function Home() {
     persistGuides(false);
     queueMicrotask(() => setGuideOpen(true));
   }, [currentGuide, guideReady, guidesMuted, persistGuides]);
+
+  useEffect(() => {
+    if (!guideOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setGuideOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [guideOpen]);
 
   const activeAssignment = useMemo(() => {
     const assignmentId = activeDispatch?.assignmentId ?? selected.id;
@@ -827,13 +836,17 @@ export default function Home() {
       </nav>
 
       {guideOpen && !discardAsk && !isPressRunning && !isClosingFrameOpen && !isStandingOpen && (
-        <aside className="journey-guide" role="dialog" aria-labelledby="saltline-guide-title">
+        <aside
+          className="journey-guide"
+          aria-labelledby="saltline-guide-title"
+          aria-describedby="saltline-guide-copy"
+        >
           <div className="journey-guide-head">
             <span>{currentGuide.step} / NIGHT DESK GUIDE</span>
             <button aria-label="Close guide" onClick={() => setGuideOpen(false)}>CLOSE ×</button>
           </div>
           <h2 id="saltline-guide-title">{currentGuide.title}</h2>
-          <p>{currentGuide.copy}</p>
+          <p id="saltline-guide-copy">{currentGuide.copy}</p>
           <div className="journey-guide-actions">
             <button className="ink-button" onClick={() => setGuideOpen(false)}>Understood <span>→</span></button>
             <button
