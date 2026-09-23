@@ -4,7 +4,7 @@ Prepared on 14 September 2026 for Unlayer's Build With React Image Editor Challe
 
 The competition build is publicly deployed on Vercel and available to anonymous visitors.
 
-Technical readiness was reverified locally on 14 September: the redundant guide was removed from the primary route, a personalized front-page download was added, browser acceptance passed at desktop and mobile widths, and both production build paths plus lint pass. Publish the resulting commit before performing the entrant-account actions below.
+Updated 23 September: an image-first mobile opening, clearer role and time commitment, a recommended first case, selective editor guidance, accessible Save/Cancel controls, and a front-page-first reveal. Detailed measurements remain available under “How your edit changed the story.” The X copy below is the current launch copy.
 
 ## Final launch order
 
@@ -37,7 +37,7 @@ https://saltline-dispatch.vercel.app
 
 ### Social post link
 
-Paste the final X or LinkedIn post URL here. The field is optional in the current form, but a public post gives judges a fast visual entry point and makes the project easier to feature.
+Paste the final X post URL here. The field is optional in the current form, but the announcement includes sharing with #BuiltWithImageEditor as a participation step, so include your published X post.
 
 ### Tell us about your GTA VI experience
 
@@ -61,7 +61,7 @@ Check all three required boxes:
 
 https://github.com/adityasarade
 
-Add a personal website, X profile, or LinkedIn profile on separate lines if you want Unlayer to use those instead when featuring the project.
+https://x.com/aditya_sarade14
 
 ### Anything else you'd like us to know?
 
@@ -73,39 +73,15 @@ The public repository includes the full source, performance measurements, asset 
 
 ## X launch post
 
-Built Saltline Dispatch for @unlayer's #BuiltWithImageEditor challenge.
+two true stories can fit inside the same image. only one gets page one.
 
-Pick a coastal-crime call, lock one of two truths, edit the evidence, and print the exact saved image into the issue wall.
+built saltline dispatch for @unlayer’s #BuiltWithImageEditor challenge. pick the angle, edit the evidence, and print a front page the city remembers.
 
-Print the other angle on the same case without reconciling the change in lead. The city notices. It remembers next visit.
-
-Live: https://saltline-dispatch.vercel.app
+https://saltline-dispatch.vercel.app
 
 Recommended attachment: `public/saltline-dispatch.gif`.
 
-## LinkedIn launch post
-
-An image can tell two true stories. Which one gets page one?
-
-I built **Saltline Dispatch: the 2:13 AM edition** for Unlayer's Build With React Image Editor Challenge.
-
-It is an original coastal-crime editorial experience set in Cala Verda. Five late-night calls each contain two defensible truths. You choose a case, lock the angle you want the evidence to prove, and use React Image Editor to make that lead visible.
-
-The editor is not an optional tool inside the project. An untouched plate cannot publish. The exact image returned by Unlayer's Save action becomes the printed reveal, the angle-specific closing frame, the issue-wall artifact, the replay, and the download.
-
-The edit answers back while you make it: a live sample card beside the canvas measures whether your marks are landing on the subject your angle claimed, and which front-page layout your crop would produce.
-
-And the night carries over. The issue wall and the desk's standing are kept between visits, so reusing the same lead costs more each time — and if you print both editorial leads for one case without an editor's note, the desk has to answer for the change. It is stamped on both plates, and the city stops being polite about it.
-
-The complete experience includes five original full-resolution field plates, ten narrative outcomes, four named consequence tiers, satirical classifieds for a corrupt boom town, responsive display assets, protected editor state, export identity metadata, and a public source and provenance trail.
-
-Try it: https://saltline-dispatch.vercel.app
-
-Source: https://github.com/adityasarade/saltline-dispatch
-
-#BuiltWithImageEditor #React #CreativeCoding #WebDevelopment
-
-Tag Unlayer through LinkedIn's company mention interface when publishing.
+Post on X, then paste the published post URL into your prefilled submission form. Review and submit the form yourself; drafts are not entries. No LinkedIn post is needed.
 
 ## Short showcase blurb
 

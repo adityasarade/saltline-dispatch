@@ -7,12 +7,15 @@ import {
   Component,
   Suspense,
   lazy,
+  useEffect,
+  useRef,
   type LazyExoticComponent,
   type ReactNode,
   type RefObject,
 } from 'react';
 import type { ImageEditorRef, ImageEditorSaveResult } from '@unlayer/react-image-editor';
 import type { Angle, Assignment, ToolCue } from '@/lib/assignments';
+import { labelEditorActions } from '@/lib/editor-accessibility';
 
 // ---------------------------------------------------------------------------
 // The React Image Editor integration.
@@ -251,6 +254,11 @@ export function EditorStage({
   onSave,
   onCancel,
 }: EditorStageProps) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!editorReady || !hostRef.current) return;
+    return labelEditorActions(hostRef.current);
+  }, [editorReady, editorAttempt]);
   return (
     <div className="editor-stage">
       <div className="editor-stage-bar">
@@ -259,6 +267,7 @@ export function EditorStage({
       </div>
       <div
         className="editor-shell"
+        ref={hostRef}
         data-guide-target="editor"
         tabIndex={-1}
         aria-busy={Boolean(angle) && !editorReady && !editorFailed}

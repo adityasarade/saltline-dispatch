@@ -1,5 +1,17 @@
 # Saltline competition audit
 
+## Final experience pass — 23 September 2026
+
+- Moved the original coastal artwork into the first mobile viewport and clarified the picture-editor role, three-to-five-minute commitment and downloadable edition.
+- Recommended Wake Tax for a first run while keeping every case available.
+- Kept landing and payoff screens unobstructed. Automatic guidance explains Angle Lock and the image desk; manual Guide works throughout the journey, including after Stop tips.
+- Led the reveal with the completed newspaper and Keep my front page. The unchanged source comparison, measurements, City Heat and raw-plate download remain inside the expandable “How your edit changed the story” section.
+- Restored accessible names for the native editor's icon-only Save and Cancel controls on phones.
+- Verification: 87 unit tests, content validation, ESLint, TypeScript and the Vercel production build pass. Desktop and 390-pixel browser journeys reject untouched Save, publish a real filter edit, preserve the exact returned image, and download a 1600 × 2000 PNG. Landing widths of 320, 390 and 1440 pixels have no horizontal overflow.
+- Submission kit now contains the current X copy and explicitly preserves account-holder review and submission.
+
+These changes target visual execution and experience while retaining the two-angle story, editor centrality, original assets and persistent consequences.
+
 Audit date: 14 September 2026
 
 This is a requirement-by-requirement audit of Saltline Dispatch against Unlayer's official Build With React Image Editor Challenge materials. It uses the [official challenge FAQ](https://unlayer.notion.site/Build-With-Image-Editor-Challenge-FAQ-3cf0ceb4c8e180309d91cd730811ebd1?pvs=73), [official announcement](https://x.com/unlayer/status/2095499044072149504), [React Image Editor repository](https://github.com/unlayer/react-image-editor), [editor documentation](https://docs.unlayer.com/builder/latest/images/image-editor), and the [official submission form](https://docs.google.com/forms/d/e/1FAIpQLScfzk0EYvIZb9AuqI3A33H8dIk8WdlWPFNDz5S7TsaPrlVzVw/viewform?usp=send_form).

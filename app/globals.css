@@ -500,6 +500,54 @@ h1 em {
   display: flex;
   align-items: center;
   gap: 22px;
+  margin-bottom: 22px;
+}
+.first-call-note {
+  display: block;
+  margin-top: 10px;
+  color: var(--coral-copy);
+  font: 800 9px/1.4 var(--sans);
+  letter-spacing: .08em;
+}
+.edition-reading {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.edition-reading summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 17px 0;
+  cursor: pointer;
+  font: 700 13px/1.4 var(--sans);
+  list-style: none;
+}
+.edition-reading summary::-webkit-details-marker {
+  display: none;
+}
+.edition-reading summary:focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: 3px;
+}
+.edition-reading[open] summary span {
+  transform: rotate(45deg);
+}
+.keepsake-note {
+  display: block;
+  color: var(--muted);
+  font: 600 11px/1.5 var(--sans);
+  letter-spacing: .06em;
+}
+.reveal-aside > .reveal-actions {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.edition-reading .reveal-proof {
+  margin: 12px 0;
+  color: var(--muted);
+  font: 500 13px/1.5 var(--sans);
 }
 .edition-note {
   color: var(--muted);
@@ -2115,10 +2163,29 @@ h1 em {
     display: none;
   }
   .desk-copy {
-    padding-top: 52px;
+    padding: 26px 24px 24px;
+  }
+  .desk-copy h1 {
+    font-size: clamp(38px, 10.8vw, 54px);
+  }
+  .desk-copy .intro {
+    margin: 14px 0 20px;
+    font-size: 16px;
+    line-height: 1.5;
   }
   .desk-plate {
-    min-height: 390px;
+    grid-row: 1;
+    min-height: 170px;
+  }
+  .desk-plate .plate-strip-one {
+    top: 30%;
+  }
+  .desk-plate .plate-strip-two {
+    top: 64%;
+  }
+  .desk-plate .plate-stamp {
+    transform: scale(.65) rotate(7deg);
+    transform-origin: bottom right;
   }
   .desk-hero-image {
     object-position: 64% center;
@@ -2135,8 +2202,9 @@ h1 em {
     gap: 5px;
   }
   .desk-actions {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
+    flex-direction: row;
+    gap: 16px;
   }
   .call-footer {
     align-items: flex-start;
@@ -3099,10 +3167,11 @@ h1 em {
 @media (max-width: 560px) {
   .journey-guide {
     right: 12px;
-    top: 150px;
+    top: auto;
+    bottom: max(12px, env(safe-area-inset-bottom));
     width: calc(100vw - 24px);
     padding: 17px;
-    max-height: calc(100svh - 162px);
+    max-height: 45svh;
     overflow: auto;
     box-shadow: 7px 8px 0 rgba(23,26,24,.2), 0 18px 44px rgba(23,26,24,.25);
   }

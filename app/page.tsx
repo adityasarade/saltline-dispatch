@@ -55,37 +55,37 @@ function journeyGuide(screen: Screen, angleLocked: boolean): JourneyGuide {
   if (screen === 'desk') return {
     key: 'briefing', step: '01 / 05', title: 'You are tonight’s picture editor.',
     copy: 'Take one field call, decide what its photograph proves, make that lead visible in the image editor, and send your exact export to print.',
-    action: 'Start tonight’s run',
+    action: 'Show the start button',
     target: '[data-guide-target="start"]',
   };
   if (screen === 'calls') return {
     key: 'calls', step: '02 / 05', title: 'Choose one story to investigate.',
     copy: 'Each case contains two defensible angles. Select any card now; you will choose its angle after the field plate opens.',
-    action: 'Open a field call',
+    action: 'Show the first call',
     target: '[data-guide-target="case"]',
   };
   if (screen === 'edit' && !angleLocked) return {
     key: 'angle-lock', step: '03 / 05', title: 'Lock the headline before editing.',
     copy: 'Choose one Angle Lock beside the plate. It changes the recommended edit, the printed headline, and the consequence recorded on the issue wall.',
-    action: 'Lock an angle',
+    action: 'Show the two angles',
     target: '[data-guide-target="angle"]',
   };
   if (screen === 'edit') return {
     key: 'image-desk', step: '03 / 05', title: 'Make the chosen lead unmistakable.',
     copy: 'Follow START HERE for the fastest route, make one visible move, then use the editor’s Save control. Saltline measures and prints that exact export.',
-    action: 'Work the plate',
+    action: 'Show the image editor',
     target: '[data-guide-target="editor"]',
   };
   if (screen === 'reveal') return {
     key: 'published', step: '04 / 05', title: 'Read what your edit became.',
     copy: 'The proof pair shows source versus saved export. The page, lead verdict and CITY HEAT explain how your framing changed the edition.',
-    action: 'Read my edition',
+    action: 'Show my edition',
     target: '[data-guide-target="reveal"]',
   };
   return {
     key: 'issue-wall', step: '05 / 05', title: 'The paper remembers every version.',
     copy: 'Open a plate to revisit it, run another case, or read the standing sheet. Printing opposing angles keeps both versions and raises CITY HEAT.',
-    action: 'Open the issue wall',
+    action: 'Show the issue wall',
     target: '[data-guide-target="archive"]',
   };
 }
@@ -303,6 +303,7 @@ export default function Home() {
   );
 
   const currentGuide = journeyGuide(screen, Boolean(selectedAngle));
+  const guideKey = currentGuide.key;
   const followGuide = useCallback(() => {
     const selector = currentGuide.target;
     setGuideOpen(false);
@@ -343,11 +344,17 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!guideReady || guidesMuted || seenGuides.current.has(currentGuide.key)) return;
-    seenGuides.current.add(currentGuide.key);
-    persistGuides(false);
-    queueMicrotask(() => setGuideOpen(true));
-  }, [currentGuide, guideReady, guidesMuted, persistGuides]);
+    if (!guideReady) return;
+    // Keep the first impression and finished edition unobstructed. The guide
+    // is always available; automatic notes explain the two unfamiliar steps.
+    const automatic = guideKey === 'angle-lock' || guideKey === 'image-desk';
+    const show = automatic && !guidesMuted && !seenGuides.current.has(guideKey);
+    if (show) {
+      seenGuides.current.add(guideKey);
+      persistGuides(false);
+    }
+    queueMicrotask(() => setGuideOpen(show));
+  }, [guideKey, guideReady, guidesMuted, persistGuides]);
 
   useEffect(() => {
     if (!guideOpen) return;
@@ -800,13 +807,10 @@ export default function Home() {
         <button
           className="guide-toggle"
           onClick={() => {
-            if (guidesMuted) {
-              setGuidesMuted(false);
-              persistGuides(false);
-            }
             setGuideOpen(true);
           }}
           aria-expanded={guideOpen}
+          aria-controls="saltline-journey-guide"
         >
           GUIDE
         </button>
@@ -867,6 +871,7 @@ export default function Home() {
 
       {guideOpen && !discardAsk && !isPressRunning && !isClosingFrameOpen && !isStandingOpen && (
         <aside
+          id="saltline-journey-guide"
           className="journey-guide"
           aria-labelledby="saltline-guide-title"
           aria-describedby="saltline-guide-copy"
@@ -898,10 +903,10 @@ export default function Home() {
           <div className="desk-copy">
             <p className="eyebrow">Cala Verda / live case desk / 02:13</p>
             <h1 id="desk-title">The city plays dumb.<br /><em>Make the proof loud.</em></h1>
-            <p className="intro">Five late-night calls. Two defensible truths inside every field plate. Lock the lead, use React Image Editor to make it visible, and your exact saved image decides what Cala Verda wakes up believing.</p>
+            <p className="intro">You’re the night-shift picture editor. One photograph tells two true stories. Choose the one that makes page one, edit the evidence, and print an edition you can keep.</p>
             <div className="desk-actions">
               <button ref={startButtonRef} className="ink-button" data-guide-target="start" onClick={browseFieldCalls}>Start tonight&apos;s run <span>→</span></button>
-              <span className="edition-note">5 cases<br />1 print to make</span>
+              <span className="edition-note">3–5 minutes<br />No account needed</span>
             </div>
             {desk.filed > 0 ? (
               <div className="desk-resume" aria-label="Where tonight's edition stands">
@@ -916,9 +921,9 @@ export default function Home() {
               <div className="run-card" aria-label="How to complete tonight's run">
                 <span className="run-card-label">Desk rule / two truths, one print</span>
                 <ol>
-                  <li><b>01</b><span>Pick one late-night case.</span></li>
-                  <li><b>02</b><span>Lock a story angle, then frame and mark the evidence.</span></li>
-                  <li><b>03</b><span>Save it. Your exact export and angle hit the issue wall.</span></li>
+                  <li><b>01</b><span>Answer a field call.</span></li>
+                  <li><b>02</b><span>Choose your angle. Make one visible edit.</span></li>
+                  <li><b>03</b><span>Print your front page. The city remembers.</span></li>
                 </ol>
               </div>
             )}
@@ -973,6 +978,7 @@ export default function Home() {
                   >
                     <span className="call-index">0{index + 1}</span>
                     <span className="call-time">{assignment.time}</span>
+                    {index === 0 && desk.filed === 0 && <span className="first-call-note">NEW TO THE DESK? START HERE</span>}
                     <span className="call-image">
                       <img
                         src={assignment.preview}
@@ -999,7 +1005,7 @@ export default function Home() {
               );
             })}
           </div>
-          <p className="call-footer">Choose a card to open its field plate. There is no case-selection step after this one.</p>
+          <p className="call-footer">One call is a complete story. Start with Wake Tax, or follow the photograph that catches your eye.</p>
         </section>
       )}
 
@@ -1098,6 +1104,13 @@ export default function Home() {
             <h1 id="reveal-title">Your edit is<br /><em>on the record.</em></h1>
             <p>{activeDispatch.angleOutcome}</p>
             <p className="reveal-angle">ANGLE LOCKED / {activeDispatch.angleLabel}</p>
+            <div className="reveal-actions">
+              <button className="ink-button" disabled={isPublishing || !activeDispatch.image} onClick={() => void downloadFrontPage()}>{isPublishing ? 'Developing front page…' : 'Keep my front page'}<span>↓</span></button>
+              <span className="keepsake-note">Your edition · 1600 × 2000 PNG</span>
+              <button className="text-button" onClick={() => { advanceProgress(4); setScreen('archive'); setIsClosingFrameOpen(true); }}>Close the edition & open the issue wall →</button>
+            </div>
+            <details className="edition-reading">
+              <summary>How your edit changed the story <span aria-hidden="true">+</span></summary>
             <p className={`lead-call lead-${activeDispatch.lead.verdict}`}>
               <b>{activeDispatch.lead.verdictLabel}</b>
               {activeDispatch.lead.subject ? <em>You locked {activeDispatch.lead.subject}.</em> : null}
@@ -1133,7 +1146,7 @@ export default function Home() {
             </div>
             <p className="reveal-proof">
               {activeDispatch.image
-                ? <>The image at right is the exact flattened <b>dataUrl</b> returned by React Image Editor. Saltline&apos;s paper and stamp sit around it; they never replace or crop it.</>
+                ? <>Your saved image is printed in full. The paper and stamp sit around it; every mark and crop is yours.</>
                 : <>This record came back from an earlier visit. The archive box only keeps the newest negatives, so the ledger below survived and the pixels did not.</>}
             </p>
             <dl className="export-ledger">
@@ -1143,10 +1156,9 @@ export default function Home() {
               <div><dt>LEAD</dt><dd>{leadLedgerLine(activeDispatch.lead)}</dd></div>
             </dl>
             <div className="reveal-actions">
-              <button className="ink-button" onClick={() => { advanceProgress(4); setScreen('archive'); setIsClosingFrameOpen(true); }}>Close the edition <span>→</span></button>
-              <button className="text-button front-page-action" disabled={isPublishing || !activeDispatch.image} onClick={() => void downloadFrontPage()}>{isPublishing ? 'Developing front page…' : 'Keep front page ↓'}<small>1600 × 2000 PNG</small></button>
               <button className="text-button" disabled={!activeDispatch.image} onClick={() => void downloadDispatch()}>Keep exact plate ↓</button>
             </div>
+            </details>
           </div>
           <article className={`printed-dispatch accent-${activeAssignment.accent}`} aria-label={`Your finished ${activeAssignment.title} front page`}>
             <div className="dispatch-masthead">
